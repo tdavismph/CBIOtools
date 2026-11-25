@@ -10,8 +10,8 @@ Planning tools for projects that use the Census-Based, Impact-Oriented approach 
 
 Each tool is one HTML file with no installation. Open it in a browser, or use the web address once GitHub Pages is turned on for this repository (Settings, Pages, deploy from the `main` branch, root folder):
 
-- https://tdavismph.github.io/CBIOTools/
-- https://tdavismph.github.io/CBIOTools/budget-calculator/
+- https://tdavismph.github.io/CBIOtools/
+- https://tdavismph.github.io/CBIOtools/budget-calculator/
 
 The calculator loads its fonts from Google Fonts when online and falls back to system fonts offline. All calculation runs in the browser; nothing is sent to a server.
 

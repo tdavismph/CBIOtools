@@ -1,0 +1,1349 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CBIO+ Project Budget Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --paper:#EAF0EC; --paper-2:#F6F8F5; --ink:#16261F; --ink-soft:#43584E;
+    --spruce:#1C6B4B; --spruce-d:#155238; --slate:#245C7A; --ochre:#B4832A; --brick:#9C3B2E;
+    --rule:#C6CFC7; --rule-2:#DBE2DA;
+    --shadow:0 1px 0 rgba(22,38,31,.06), 0 8px 24px -18px rgba(22,38,31,.5);
+    --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+    --body:"Public Sans",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --display:"Bitter",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+  .wrap{max-width:1300px;margin:0 auto;padding:0 20px 72px}
+
+  .masthead{padding:30px 0 18px;border-bottom:2px solid var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--spruce);margin:0 0 10px}
+  .masthead h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4.2vw,44px);line-height:1.05;margin:0;letter-spacing:-.015em}
+  .masthead p.lede{margin:10px 0 0;max-width:70ch;color:var(--ink-soft)}
+
+  .identity{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px 18px;border:1px solid var(--rule);background:var(--paper-2);border-radius:3px;padding:14px 16px}
+  .idfield{display:grid;gap:4px}
+  .idfield label{font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--spruce)}
+  .idfield input,.idfield select{font-family:var(--body);font-size:14px;padding:6px 9px;border:1px solid var(--rule);border-radius:2px;background:#fff;color:var(--ink);width:100%}
+  .idfield input:focus,.idfield select:focus{border-color:var(--spruce);outline:none}
+
+  .typebar{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .typebar .tlabel{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin-right:2px}
+  .seg{display:inline-flex;border:1px solid var(--spruce);border-radius:3px;overflow:hidden}
+  .seg button{font-family:var(--body);font-size:14px;font-weight:500;background:#fff;color:var(--spruce);border:0;padding:9px 16px;cursor:pointer}
+  .seg button.active{background:var(--spruce);color:#fff}
+  .seg button+button{border-left:1px solid var(--spruce)}
+
+  .tools{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
+  button{font-family:var(--body);font-size:13.5px;cursor:pointer}
+  .btn{background:var(--paper-2);border:1px solid var(--rule);color:var(--ink);padding:7px 13px;border-radius:2px;font-weight:500}
+  .btn:hover{border-color:var(--spruce);color:var(--spruce)}
+  .btn-primary{background:var(--spruce);border-color:var(--spruce);color:#fff}
+  .btn-primary:hover{background:var(--spruce-d);color:#fff}
+  .btn-x{background:var(--slate);border-color:var(--slate);color:#fff}
+  .btn-x:hover{background:#1c4a63;color:#fff}
+  :focus-visible{outline:2px solid var(--ochre);outline-offset:2px}
+
+  .savednote{margin:12px 0 0;padding:10px 13px;border-left:3px solid var(--spruce);background:rgba(28,107,75,.08);font-size:13px;color:var(--ink);border-radius:0 2px 2px 0;display:none}
+  .savednote.show{display:block}
+
+  .balance{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:1px solid var(--rule);padding:13px 0 11px;margin-bottom:24px}
+  .balance-inner{display:grid;grid-template-columns:1fr auto auto;gap:26px;align-items:center}
+  @media (max-width:760px){.balance-inner{grid-template-columns:1fr}}
+  .bmetric .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+  .bmetric .val{font-family:var(--mono);font-size:clamp(20px,2.6vw,28px);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:2px;color:var(--spruce)}
+  .bmetric .sub{font-size:12px;color:var(--ink-soft);margin-top:1px}
+  .bmetric.right{text-align:right;border-left:1px solid var(--rule);padding-left:24px}
+  .bars{display:grid;gap:6px;min-width:0}
+  .barrow{display:grid;grid-template-columns:110px 1fr 120px;gap:12px;align-items:center}
+  .barlabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+  .track{height:15px;background:var(--rule-2);border-radius:1px;overflow:hidden}
+  .fill{height:100%;width:0;transition:width .35s cubic-bezier(.4,0,.2,1)}
+  .fill-a{background:var(--spruce)} .fill-b{background:var(--slate)} .fill-c{background:var(--ochre)}
+  .barval{font-family:var(--mono);font-size:13px;font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
+
+  .cols{display:grid;grid-template-columns:1fr 400px;gap:26px;align-items:start}
+  @media (max-width:1000px){.cols{grid-template-columns:1fr}}
+
+  .card{background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;margin-bottom:15px;box-shadow:var(--shadow)}
+  .card>summary{list-style:none;cursor:pointer;padding:13px 16px;display:flex;gap:12px;align-items:baseline}
+  .card[open]>summary{border-bottom:1px solid var(--rule-2)}
+  .card>summary::-webkit-details-marker{display:none}
+  .card>summary::before{content:"";width:9px;height:9px;flex:none;border-right:2px solid var(--spruce);border-bottom:2px solid var(--spruce);transform:rotate(-45deg);transition:transform .2s;position:relative;top:-2px}
+  .card[open]>summary::before{transform:rotate(45deg)}
+  .card h2{font-family:var(--display);font-size:16.5px;font-weight:600;margin:0;letter-spacing:-.01em}
+  .card .cardnote{font-size:12px;color:var(--ink-soft);margin-left:auto;text-align:right;max-width:42ch}
+  .fields{padding:5px 16px 15px}
+
+  .field{padding:10px 0;border-bottom:1px dotted var(--rule);display:grid;gap:7px;position:relative}
+  .field:last-child{border-bottom:0}
+  .field .top{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:baseline}
+  .field label{font-weight:500;font-size:14px}
+  .field .help{font-size:12px;color:var(--ink-soft);grid-column:1/-1;margin-top:-3px}
+  .field.off{opacity:.4;pointer-events:none}
+
+  .info{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;margin-left:6px;padding:0;flex:none;border:1px solid var(--spruce);border-radius:50%;background:transparent;color:var(--spruce);font-family:var(--mono);font-size:10px;font-weight:600;line-height:1;vertical-align:middle}
+  .info:hover,.info[aria-expanded="true"]{background:var(--spruce);color:#fff}
+  .pop{display:none;position:absolute;z-index:25;left:0;right:0;top:100%;background:#fff;border:1px solid var(--spruce);border-radius:3px;padding:11px 13px;font-size:12.5px;line-height:1.45;color:var(--ink);box-shadow:0 10px 28px -12px rgba(22,38,31,.55)}
+  .pop.show{display:block}
+  .pop p{margin:0 0 8px}.pop p:last-child{margin:0}
+
+  .num{font-family:var(--mono);font-size:14px;font-weight:500;text-align:right;width:118px;padding:5px 8px;border:1px solid var(--rule);border-radius:2px;background:#fff;color:var(--ink);font-variant-numeric:tabular-nums}
+  .num:focus{border-color:var(--spruce);outline:none}
+  input[type=range]{width:100%;accent-color:var(--spruce);margin:0}
+  .unitpfx{font-family:var(--mono);font-size:12px;color:var(--ink-soft);margin-right:3px}
+
+  .switch{display:flex;align-items:center;gap:9px}
+  .switch input{appearance:none;width:38px;height:21px;border-radius:11px;background:var(--rule);position:relative;cursor:pointer;transition:background .2s;flex:none;margin:0}
+  .switch input::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+  .switch input:checked{background:var(--spruce)}
+  .switch input:checked::after{transform:translateX(17px)}
+  .switch span{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+
+  .panel{position:sticky;top:104px}
+  @media (max-width:1000px){.panel{position:static}}
+  .rescard{background:var(--paper-2);border:1px solid var(--rule);border-radius:3px;padding:15px;margin-bottom:15px;box-shadow:var(--shadow)}
+  .rescard h3{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--spruce);margin:0 0 11px;padding-bottom:8px;border-bottom:1px solid var(--rule-2)}
+  .line{display:grid;grid-template-columns:1fr auto;gap:12px;padding:3.5px 0;font-size:13.5px;align-items:baseline}
+  .line .v{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .line.total{border-top:1px solid var(--ink);margin-top:7px;padding-top:7px;font-weight:600}
+  .line.total .v{font-size:15px}
+  .line.sub{border-top:1px solid var(--rule-2);margin-top:5px;padding-top:5px;font-weight:600}
+  .line.muted{color:var(--ink-soft);font-size:12.5px}
+  .line.zero{display:none}
+  .stat{display:grid;grid-template-columns:1fr auto;gap:10px;padding:4px 0;font-size:13.5px}
+  .stat .v{font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums}
+  .callout{border-left:3px solid var(--ochre);background:rgba(180,131,42,.08);padding:9px 12px;font-size:12px;color:var(--ink-soft);margin-top:11px;border-radius:0 2px 2px 0}
+
+  table.yr{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:2px}
+  table.yr th,table.yr td{text-align:right;padding:4px 6px;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+  table.yr th:first-child,table.yr td:first-child{text-align:left;font-family:var(--body)}
+  table.yr thead th{border-bottom:1px solid var(--rule);font-weight:600;color:var(--spruce);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}
+  table.yr tr.tot td{border-top:1px solid var(--ink);font-weight:700}
+  table.yr td.z,table.yr th.z{color:var(--rule)}
+
+  footer{margin-top:34px;padding-top:18px;border-top:2px solid var(--ink);font-size:12px;color:var(--ink-soft)}
+  footer h4{font-family:var(--display);font-size:14px;margin:0 0 8px;color:var(--ink)}
+  footer ul{margin:0 0 14px;padding-left:18px}
+  footer li{margin-bottom:5px}
+
+  @media print{
+    .balance,.panel{position:static}
+    .masthead .tools,.typebar .seg button:not(.active){display:none}
+    body{background:#fff}.pop{display:none!important}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">Impact Global Health Alliance &middot; Census-Based, Impact-Oriented + Care Groups</p>
+    <h1>CBIO+ Project Budget Calculator</h1>
+    <p class="lede">Set the assumptions for a service area and see what a CBIO+ project costs, how the cost splits across funders, and what it works out to per person reached. Choose the project type first, then set only that type's parameters. Every figure is editable &mdash; the defaults are planning-level estimates drawn from IGHA partner budgets, not quotes. Download a draft budget as an Excel workbook, or save a re-openable copy of this page.</p>
+
+    <div class="identity" id="identity">
+      <div class="idfield"><label for="id_org">Organization name</label><input type="text" id="id_org" placeholder="your organization" maxlength="80"></div>
+      <div class="idfield"><label for="id_area">Area / catchment</label><input type="text" id="id_area" placeholder="e.g. Bogusero Ward" maxlength="80"></div>
+      <div class="idfield"><label for="id_country">Country</label><input type="text" id="id_country" placeholder="e.g. Kenya" maxlength="60"></div>
+      <div class="idfield"><label for="id_cur">Local currency code</label><input type="text" id="id_cur" placeholder="e.g. KES" maxlength="6"></div>
+      <div class="idfield"><label for="id_fx">Local units per US$</label><input type="number" id="id_fx" value="0" min="0" step="0.01" placeholder="e.g. 129"></div>
+      <div class="idfield"><label for="id_start">Start year</label><input type="number" id="id_start" min="2024" max="2035" step="1" placeholder="e.g. 2027"></div>
+    </div>
+
+    <div class="typebar">
+      <span class="tlabel">Project type</span>
+      <span class="seg" role="group" aria-label="Project type">
+        <button type="button" id="typeMCHN" class="active">Maternal &amp; Child Health / Nutrition</button>
+        <button type="button" id="typeCMD">Cardiometabolic (Hypertension)</button>
+      </span>
+      <span class="idfield" style="min-width:150px"><label for="scenarioName">Scenario name</label><input type="text" id="scenarioName" placeholder="e.g. Bogusero, base case" maxlength="80"></span>
+    </div>
+
+    <div class="tools">
+      <button class="btn btn-x" id="xlsxBtn" type="button">Download Excel budget</button>
+      <button class="btn btn-primary" id="saveBtn" type="button">Save this page</button>
+      <button class="btn" id="copyBtn" type="button">Copy summary</button>
+      <button class="btn" id="printBtn" type="button">Print / PDF</button>
+      <button class="btn" id="resetBtn" type="button">Reset to defaults</button>
+    </div>
+    <p class="savednote" id="savedNote"></p>
+  </header>
+
+  <div class="balance" role="status" aria-live="polite">
+    <div class="balance-inner">
+      <div class="bars">
+        <div class="barrow"><span class="barlabel" id="fl1">Implementing org</span><div class="track"><div class="fill fill-a" id="barA"></div></div><span class="barval" id="valA">$0</span></div>
+        <div class="barrow"><span class="barlabel">IGHA</span><div class="track"><div class="fill fill-b" id="barB"></div></div><span class="barval" id="valB">$0</span></div>
+        <div class="barrow"><span class="barlabel">In-kind (memo)</span><div class="track"><div class="fill fill-c" id="barC"></div></div><span class="barval" id="valC">$0</span></div>
+      </div>
+      <div class="bmetric right"><div class="lbl">Total cash budget</div><div class="val" id="totVal">$0</div><div class="sub" id="totSub">&nbsp;</div></div>
+      <div class="bmetric right"><div class="lbl">Cost per person / year</div><div class="val" id="pcVal">$0</div><div class="sub" id="pcSub">&nbsp;</div></div>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div id="inputs"></div>
+    <aside class="panel">
+      <div class="rescard"><h3>Program shape</h3><div id="shape"></div></div>
+      <div class="rescard"><h3>Budget by category</h3><div id="cats"></div></div>
+      <div class="rescard"><h3>By funder</h3><div id="funders"></div><div class="callout" id="inkindNote"></div></div>
+      <div class="rescard"><h3>By year</h3><div id="years"></div></div>
+      <div class="rescard"><h3>Unit costs</h3><div id="units"></div></div>
+      <div class="rescard" id="impactCard"><h3>Estimated impact</h3><div id="impact"></div></div>
+    </aside>
+  </div>
+
+  <footer>
+    <h4>Where the default figures come from</h4>
+    <ul>
+      <li><strong>Structure and ratios.</strong> Maternal-child defaults follow IGHA/KIKOP practice: 5 persons per household, ~100 households per community with one paid/stipended CHW/CHV each, Care Group Volunteers (CGVs, volunteer mother-to-mother educators) covering 8&ndash;12 enrolled women, ~10 CGVs per Care Group, and 1&ndash;2 Care Groups per paid promoter. CHWs/CHVs make eleven scheduled 60-minute home visits per mother from the second trimester to the child's second birthday. Cardiometabolic defaults follow an urban NGO&ndash;IGHA hypertension demonstration: 3.6 urban persons per household, 15 households per Care Group Volunteer, and seven CGVs per Promoter (one Care Group).</li>
+      <li><strong>Unit costs.</strong> Drawn from four IGHA partner budgets for 2025&ndash;2026, past project proposals and an earlier IGHA CBIO+ budgeting tool. Default salaries and stipends are fully loaded where the source budget loaded them.</li>
+      <li><strong>Setup vs. recurring.</strong> One-time costs (census, initial training, tablets, equipment, and any Community Birthing Center / Casa Materna construction) are placed in the first year; recurring costs (stipends, supplies, refreshers, monitoring) repeat each year and are pro-rated in the first year by the setup fraction you set.</li>
+      <li><strong>In-kind.</strong> Government or partner salaries, clinical care, medicines, and platform licensing that a project uses without paying cash are shown as a memo and are not added into the cash total.</li>
+    </ul>
+    <p>Planning-level approximations for design work. Verify local wages, ratios, and prices before submitting a budget. This tool produces a draft, not a quote.</p>
+  </footer>
+</div>
+
+<script>
+/* ============================================================= *
+ *  CBIO+ Project Budget Calculator
+ *  Two project types: MCHN (maternal-child) and CMD (hypertension).
+ *  Config-driven form + per-type cost model + funder split +
+ *  setup/recurring year buckets + xlsx export + re-openable save.
+ * ============================================================= */
+
+/* ---------- shared setup / duration fields ---------- */
+const SETUP_MCHN = [
+  {id:"m_years", label:"Project duration (years)", type:"int", val:3, min:1, max:7, step:1,
+    info:"One-time start-up costs (census, initial training, equipment, any birthing-center construction) fall in Year 1; recurring costs — salaries, stipends, supplies, monitoring — repeat every year. Three years matches the WAM/Kisii design."}
+];
+const SETUP_CMD = [
+  {id:"c_months", label:"Project duration (months)", type:"int", val:16, min:6, max:60, step:1,
+    info:"A cardiometabolic demonstration commonly runs about 16 months: roughly 4 to set up and 12 of active implementation. One-time costs fall in Year 1; the year-by-year table splits the project across calendar years."}
+];
+
+/* ---------- MCHN field configuration ---------- */
+const MCHN_FIELDS = [
+  {sec:"Reach and structure", note:"Population and the ratios that size the volunteer and staff cascade.", items:[
+    {id:"m_pop", label:"Catchment population", type:"int", val:30000, min:500, max:200000, step:500},
+    {id:"m_perHH", label:"Persons per household", type:"num", val:5, min:2, max:10, step:.1, help:"Census average; 5 is typical in rural Kenya and Guatemala."},
+    {id:"m_hhPerComm", label:"Households per community (on average)", type:"int", val:100, min:20, max:300, step:10},
+    {id:"m_hhPerCHV", label:"Households per paid/stipended CHW/CHV", type:"int", val:100, min:20, max:300, step:10,
+      info:"Paid or stipended Community Health Workers / Volunteers make the eleven scheduled home visits per mother. One per community is the usual ratio."},
+    {id:"m_commPerCoord", label:"Communities per paid coordinator / field officer", type:"num", val:7, min:2, max:20, step:1,
+      info:"Barbara's start-up tool assumes one project coordinator per seven communities. Coordinators supervise CHVs and promoters and manage data."},
+    {id:"m_cbr", label:"Crude birth rate (annual births per 1,000 people)", type:"num", val:30, min:10, max:50, step:1,
+      info:"Drives the number of pregnant women and children under two, which sets Care Group Volunteer numbers and the direct-beneficiary count. 30/1,000 is a rough sub-Saharan average; KIKOP's registers show about 20/1,000 (2.0%). A total fertility rate of ~4 children per woman corresponds very roughly to a crude birth rate near 30."},
+    {id:"m_womenPerCGV", label:"Enrolled women per Care Group Volunteer (CGV)", type:"int", val:9, min:5, max:15, step:1, dep:"m_careGroups",
+      info:"Each CGV carries health and nutrition lessons to a cluster of neighbouring pregnant women and mothers of under-twos.",
+      help:"Recommended to have no more than 15 households per CGV. Fewer than 6 is generally not cost-effective."},
+    {id:"m_cgvPerGroup", label:"CGVs per Care Group", type:"int", val:10, min:5, max:16, step:1, dep:"m_careGroups",
+      help:"To allow for participatory learning, the number of CG volunteers in the CG should be between 6 and 16 members."},
+    {id:"m_groupsPerProm", label:"Care Groups per paid promoter", type:"num", val:2, min:1, max:9, step:1, dep:"m_careGroups",
+      info:"For CG projects using paid Promoters who only work with Care Groups, this should be between 5 and 9 groups. For CG projects using other staff as Promoters (e.g. government CHWs) who have other tasks, it is recommended to have no more than two Care Groups per Promoter."}
+  ]},
+
+  {sec:"Interventions", note:"Switch the components of the CBIO+ package on or off.", items:[
+    {id:"m_careGroups", label:"Care Groups (volunteer mother-to-mother education)", type:"toggle", val:1,
+      info:"The “Plus” in CBIO+. Volunteer Care Group Volunteers each reach a cluster of neighbouring homes with behaviour-change lessons, meeting twice monthly. Turning this off leaves census and CHV home visiting without the volunteer cascade."},
+    {id:"m_homeVisits", label:"Routine home visitation by CHVs", type:"toggle", val:1,
+      info:"Eleven scheduled 60-minute visits per mother from the second trimester to the child's second birthday: assessment, counselling, referral."},
+    {id:"m_vitalEvents", label:"Census & vital-events registration", type:"toggle", val:1,
+      info:"The door-to-door census that finds every household and registers pregnancies, births, and deaths — the foundation of the “Census-Based, Impact-Oriented” approach and the basis for measuring mortality."},
+    {id:"m_cbc", label:"Community Birthing Centers (Casas Maternas)", type:"toggle", val:0,
+      info:"Upgrading one or more existing facilities to a 24/7, culturally appropriate delivery standard: supplemental nursing, a woman-friendly birthing space, solar power, water, and equipment. A large, lumpy capital cost, present in Guatemala and Kenya but not Haiti."},
+    {id:"m_nFacilities", label:"Number of birthing centers to upgrade", type:"int", val:2, min:1, max:8, step:1, dep:"m_cbc"},
+    {id:"m_tba", label:"Traditional Birth Attendant (TBA) incentives", type:"toggle", val:1,
+      info:"Certified TBAs receive a small incentive ($1.50 in Kenya) for each mother they refer who delivers at the facility, redirecting them from home deliveries to facility deliveries."},
+    {id:"m_vhc", label:"Village Health Committees", type:"toggle", val:1, help:"Trained community committees that govern local health priorities; quarterly meetings."},
+    {id:"m_ba", label:"Formative research (Barrier Analysis / PDI)", type:"toggle", val:1,
+      info:"Barrier Analysis and a Positive Deviance Inquiry at baseline identify why hard-to-change behaviours resist change and which behaviours drive impact more, so Care Group lessons can be tailored."},
+    {id:"m_meaningful", label:"Tablets & Meaningful app (digital data / job aid)", type:"toggle", val:1,
+      info:"IGHA's Meaningful platform runs the census, home-visit, and Care Group records and gives volunteers a tablet-based counselling job aid."},
+    {id:"m_cgvTablets", label:"— give CGVs tablets & Meaningful licences too", type:"toggle", val:0, dep:"m_meaningful",
+      info:"Off by default: only CHWs/CHVs and promoters get tablets and Meaningful app licences. Turn on for projects that also equip Care Group Volunteers digitally (as in Kenya). CGVs receive a materials pouch and ID either way; this adds a tablet and an app licence per CGV, which roughly triples the tablet count."},
+    {id:"m_kpc", label:"KPC household surveys (baseline & endline)", type:"toggle", val:1,
+      info:"Knowledge, Practice and Coverage surveys measure behaviour change. A baseline in Year 1 and an endline in the final year."},
+    {id:"m_dissem", label:"Dissemination / scale-up activities", type:"toggle", val:1, help:"Documentation, inter-county workshops, study visits, national forums."}
+  ]},
+
+  {sec:"Estimated impact (optional)", note:"Rough lives-saved and DALYs from your own mortality rates. Leave a rate at 0 to skip it.", items:[
+    {id:"m_u5mr", label:"Current under-5 mortality rate (deaths per 1,000 live births)", type:"num", val:0, min:0, max:200, step:1,
+      info:"Enter your area's under-five mortality rate (U5MR) — the number of children per 1,000 live births who die before age five. Leave at 0 to skip the child-survival estimate. Use a census-measured rate if you have one, since survey and facility figures often understate it."},
+    {id:"m_u5reduce", label:"Expected reduction in under-5 mortality", type:"pct", val:40, min:0, max:90, step:5,
+      info:"CBIO+ projects have reduced under-five mortality by roughly 50% in Bolivia (Montero) and up to about 80% in Kenya (KIKOP) over several years of implementation. For a three-year project, 30–50% is a defensible planning range; use the lower end for shorter projects or areas that already start lower."},
+    {id:"m_mmr", label:"Current maternal mortality ratio (deaths per 100,000 live births)", type:"num", val:0, min:0, max:2000, step:10,
+      info:"Enter your area's maternal mortality ratio (MMR) — maternal deaths per 100,000 live births. Leave at 0 to skip the maternal estimate."},
+    {id:"m_mmrreduce", label:"Expected reduction in maternal mortality", type:"pct", val:40, min:0, max:90, step:5,
+      info:"Maternal mortality fell 63–74% in Kenya and Guatemala CBIO+ projects that upgraded Community Birthing Centers (Casas Maternas). Cutting maternal deaths requires 24/7 skilled delivery capacity, so this estimate is only applied when Community Birthing Centers are switched on. 30–50% is a conservative planning range."},
+    {id:"m_dalyPerDeath", label:"Discounted DALYs per death averted", type:"num", val:30, min:0, max:60, step:1,
+      info:"A DALY (disability-adjusted life year) is one lost year of healthy life. Averting a child or maternal death saves roughly 25–35 discounted DALYs at a 3% discount rate; 30 is a common planning value applied here to both."}
+  ]},
+
+  {sec:"Salaries & stipends (fully loaded)", note:"Monthly stipends for volunteers; annual salaries for staff.", collapsed:true, items:[
+    {id:"m_chvStipend", label:"CHW/CHV stipend, per month", type:"money", val:25, min:0, max:400, step:5},
+    {id:"m_promStipend", label:"Care Group promoter stipend, per month", type:"money", val:25, min:0, max:400, step:5, dep:"m_careGroups"},
+    {id:"m_fieldSal", label:"Coordinator / field officer salary, per year", type:"money", val:5100, min:0, max:40000, step:100},
+    {id:"m_projLead", label:"Project lead part-charge, per year", type:"money", val:4930, min:0, max:60000, step:100, help:"Partial charge of the organization's program leadership to this project."},
+    {id:"m_nurseSal", label:"Birthing-center nurse salary, per year", type:"money", val:5100, min:0, max:40000, step:100, dep:"m_cbc"},
+    {id:"m_nursesPerFac", label:"Number of nurses per birthing center", type:"int", val:2, min:0, max:8, step:1, dep:"m_cbc",
+      info:"The number of nurses the project funds at each birthing center. 24/7 delivery cover typically needs at least two; the whole number entered here is paid at the salary above."}
+  ]},
+
+  {sec:"Unit costs — equipment, supplies, activities", note:"One-time and recurring prices. Edit to your local market.", collapsed:true, items:[
+    {id:"m_tablet", label:"Tablet (CHV / promoter)", type:"money", val:120, min:0, max:600, step:10, dep:"m_meaningful"},
+    {id:"m_cgvTablet", label:"CGV pouch for flipchart & materials + ID", type:"money", val:15, min:0, max:200, step:5, dep:"m_careGroups"},
+    {id:"m_meaningfulUser", label:"Meaningful app licence, per user per year", type:"money", val:180, min:0, max:600, step:10, dep:"m_meaningful"},
+    {id:"m_anthroKit", label:"Anthropometry kit (scale, height board, MUAC)", type:"money", val:130, min:0, max:400, step:10},
+    {id:"m_chvKit", label:"CHV / promoter field kit (bag, badge, shirts, boots)", type:"money", val:50, min:0, max:300, step:5},
+    {id:"m_dayLabor", label:"Day labour (census / mapping), per person-day", type:"money", val:10, min:0, max:60, step:1},
+    {id:"m_paintCan", label:"Paint for household numbering (1 can / 20 HH)", type:"money", val:15, min:0, max:60, step:1},
+    {id:"m_chvTrain", label:"CHV / promoter orientation, per person", type:"money", val:25, min:0, max:300, step:5},
+    {id:"m_cgvTrain", label:"CGV orientation & selection, per CGV", type:"money", val:15, min:0, max:200, step:5, dep:"m_careGroups"},
+    {id:"m_baCost", label:"Barrier Analysis + PDI (lump sum)", type:"money", val:1000, min:0, max:8000, step:50, dep:"m_ba",
+      help:"Varies according to staffing and the number of behaviours studied. Use $1,000 if unsure, but contact IGHA for a better estimate."},
+    {id:"m_entry", label:"Community entry / sensitization, per community", type:"money", val:47, min:0, max:300, step:5},
+    {id:"m_vhcCost", label:"Village Health Committee meetings, per community per year", type:"money", val:120, min:0, max:600, step:10, dep:"m_vhc"},
+    {id:"m_recognition", label:"Volunteer recognition, per volunteer per year", type:"money", val:8, min:0, max:100, step:1},
+    {id:"m_refresher", label:"Refresher / supervision, per volunteer per year", type:"money", val:8, min:0, max:100, step:1},
+    {id:"m_sms", label:"SMS credits & staff airtime, per year (lump)", type:"money", val:1800, min:0, max:20000, step:100, dep:"m_meaningful"},
+    {id:"m_transport", label:"Staff transport between communities, per year", type:"money", val:3600, min:0, max:30000, step:100},
+    {id:"m_office", label:"Office operations part-charge, per year", type:"money", val:1581, min:0, max:30000, step:100},
+    {id:"m_kpcRound", label:"KPC survey, per round (2 areas)", type:"money", val:1300, min:0, max:12000, step:100, dep:"m_kpc"},
+    {id:"m_audit", label:"Data-quality audit & external review, per year", type:"money", val:3000, min:0, max:20000, step:100},
+    {id:"m_dissemCost", label:"Dissemination, per year", type:"money", val:300, min:0, max:40000, step:100, dep:"m_dissem"},
+    {id:"m_tbaInc", label:"TBA incentive, per facility delivery", type:"money", val:1.5, min:0, max:20, step:.5, dep:"m_tba"},
+    {id:"m_facilityDeliv", label:"Facility-delivery rate (for TBA incentive)", type:"pct", val:80, min:0, max:100, step:5, dep:"m_tba",
+      help:"Base this on the rate expected near the end of the project."}
+  ]},
+
+  {sec:"Community Birthing Center capital", note:"Per-facility upgrade costs. Only counts when Birthing Centers are on.", collapsed:true, items:[
+    {id:"m_solar", label:"Solar PV array with battery backup", type:"money", val:20000, min:0, max:60000, step:1000, dep:"m_cbc"},
+    {id:"m_borehole", label:"Water borehole drilling and piping", type:"money", val:8000, min:0, max:30000, step:500, dep:"m_cbc"},
+    {id:"m_birthSpace", label:"Culturally appropriate birthing space & renovation", type:"money", val:500, min:0, max:20000, step:100, dep:"m_cbc"},
+    {id:"m_clinEquip", label:"Delivery & newborn clinical equipment (life of project)", type:"money", val:6000, min:0, max:30000, step:500, dep:"m_cbc"},
+    {id:"m_cbcSupplies", label:"Non-pharmaceutical supplies, per facility per year", type:"money", val:2400, min:0, max:20000, step:100, dep:"m_cbc"}
+  ]},
+
+  {sec:"IGHA support & reserves", note:"Alliance technical assistance and contingency.", collapsed:true, items:[
+    {id:"m_taVisit", label:"IGHA technical-assistance / monitoring visit, per year", type:"money", val:3200, min:0, max:30000, step:100},
+    {id:"m_evalQA", label:"IGHA evaluation quality-assurance, per year", type:"money", val:3500, min:0, max:30000, step:100},
+    {id:"m_contPct", label:"Contingency / foreign-exchange reserve", type:"pct", val:4, min:0, max:15, step:1, help:"Applied to cash lines (org + IGHA)."},
+    {id:"m_govInkind", label:"Government / clinical in-kind, per year (memo)", type:"money", val:0, min:0, max:500000, step:1000,
+      info:"Enter the estimated annual value of government salaries, clinical care, and medicines the project uses without paying cash. Shown as a memo only, not added to the cash total."}
+  ]}
+];
+
+/* ---------- CMD (hypertension) field configuration ---------- */
+const CMD_FIELDS = [
+  {sec:"Reach and structure", note:"Population and the Care Group cascade that sizes the project.", items:[
+    {id:"c_pop", label:"Catchment population", type:"int", val:3400, min:500, max:100000, step:100},
+    {id:"c_perHH", label:"Persons per household", type:"num", val:3.6, min:2, max:8, step:.1, help:"Urban Ghana census average is about 3.6."},
+    {id:"c_hhPerLM", label:"Households per Care Group Volunteer (CGV)", type:"int", val:15, min:5, max:40, step:1,
+      info:"Care Group Volunteers (CGVs) each cover a cluster of neighbouring households: home visits, tablet counselling, blood-pressure measurement, and referral. Fifteen suits dense urban settlement."},
+    {id:"c_lmPerLMT", label:"CGVs per Promoter (= Care Group size)", type:"int", val:7, min:4, max:14, step:1,
+      info:"Each Promoter leads one Care Group of about seven CGVs on a two-week rhythm, and receives a stipend, health-insurance cover, and a work-support kit."},
+    {id:"c_pct35", label:"Adults aged 35+ (screening denominator)", type:"pct", val:30, min:10, max:60, step:1,
+      info:"Screening and treatment concentrate on adults 35 and older, where cardiovascular risk and yield are highest. About 30% of an urban population."},
+    {id:"c_promoters", label:"Supervising nurses (in-kind)", type:"int", val:2, min:0, max:10, step:1,
+      info:"Government or NGO nurses who train and supervise the Promoters and oversee confirmatory measurement. Their salaries are contributed in-kind."},
+    {id:"c_coordinators", label:"Field coordinators (paid, part-time)", type:"num", val:1, min:0, max:6, step:1},
+    {id:"c_volPerMonitor", label:"Volunteers sharing one blood-pressure monitor", type:"int", val:4, min:1, max:12, step:1,
+      info:"An automated cuff is shared, one per four volunteers, to keep equipment cost down."},
+    {id:"c_spareTablets", label:"Spare tablets", type:"int", val:2, min:0, max:10, step:1}
+  ]},
+
+  {sec:"Interventions", note:"Switch the components on or off.", items:[
+    {id:"c_bpScreen", label:"Blood-pressure screening & referral", type:"toggle", val:1,
+      info:"CGVs measure blood pressure with a shared automated cuff and refer elevated readings to Promoters and facilities for confirmation and treatment."},
+    {id:"c_adrs", label:"Verbal diabetes-risk screening (ADRS)", type:"toggle", val:1,
+      info:"The African Diabetes Risk Score is administered verbally with waist and weight measures; high scorers are referred for a blood-glucose test. Adds waist tapes and scales. Blood-glucose testing itself is a separate toggle under supplies."},
+    {id:"c_tabletCounsel", label:"Tablet-based branching counselling (Meaningful app)", type:"toggle", val:1,
+      info:"Each CGV and Promoter carries a tablet running IGHA's Meaningful app and a branching counselling application, so each household gets tailored advice and screening data is captured as a by-product. Tablets and annual app licences are budgeted as cash below."},
+    {id:"c_norms", label:"Community norm-building activities", type:"toggle", val:1, help:"Group meetings and community actions on diet, salt, and activity — refreshments, recognition events, sensitization."},
+    {id:"c_kpc", label:"KPC household survey (baseline & endline)", type:"toggle", val:1, help:"Measures behaviour change and blood-pressure control."},
+    {id:"c_kenyaTrain", label:"Onboarding training at a Center of Excellence", type:"toggle", val:1,
+      info:"Sending staff to an IGHA partner for a Care Group and cardiometabolic training, plus in-country hosting. A one-time cost for a partner new to CBIO+."}
+  ]},
+
+  {sec:"Estimated impact (optional)", note:"The hypertension case-finding and control funnel, plus optional cardiovascular events averted.", items:[
+    {id:"c_screenRate", label:"Share of adults 35+ actually screened for high BP", type:"pct", val:90, min:0, max:100, step:5,
+      info:"The share of the 35+ population the program screens for high blood pressure. Comparable demonstrations target 90–95%. Requires blood-pressure screening to be switched on above."},
+    {id:"c_htnPrev", label:"Hypertension prevalence among adults 35+", type:"pct", val:37, min:5, max:70, step:1,
+      info:"Share of screened adults 35+ with elevated blood pressure. Urban Ghana runs about 37%, and up to ~47% among the urban poor."},
+    {id:"c_undiagnosed", label:"Share of hypertensives previously undiagnosed", type:"pct", val:50, min:0, max:100, step:5,
+      info:"The case-finding gap — hypertensives who did not know their status. Up to ~70% are unaware in some urban populations; ~50% is a mid estimate."},
+    {id:"c_treatStart", label:"Newly identified who start & stay on treatment", type:"pct", val:60, min:0, max:100, step:5,
+      info:"Newly diagnosed hypertensives who start treatment and are retained to first follow-up, via referral to facilities. Comparable projects target 60–70%."},
+    {id:"c_controlRate", label:"Treated hypertensives reaching BP control (<140/90)", type:"pct", val:45, min:0, max:100, step:5,
+      info:"Treated hypertensives whose blood pressure is controlled below 140/90 by endline. Comparable projects target 45–55%."},
+    {id:"c_cvBaseRate", label:"Annual major CV event rate in uncontrolled hypertensives", type:"pct", val:2.5, min:0, max:10, step:.5,
+      info:"Assumed annual rate of major cardiovascular events (stroke, heart attack) among uncontrolled hypertensives aged 35+ — roughly 1.5–3% per year depending on age and baseline risk. This is a planning assumption, not a measured local rate; set it to 0 to report only the control funnel."},
+    {id:"c_cvRRR", label:"Reduction in CV events from reaching BP control", type:"pct", val:25, min:0, max:60, step:5,
+      info:"Bringing blood pressure to control cuts stroke by ~35–40% and heart attack by ~20–25%; ~25% blended is a conservative planning figure."},
+    {id:"c_benefitYears", label:"Years of sustained control counted", type:"int", val:3, min:1, max:15, step:1,
+      info:"Years over which each newly controlled person is assumed to keep control and accrue reduced risk. Benefits continue only while control is sustained, which depends on the health system after the project."},
+    {id:"c_dalyPerCV", label:"DALYs per cardiovascular event averted", type:"num", val:10, min:0, max:30, step:1,
+      info:"A DALY (disability-adjusted life year) is one lost year of healthy life. A major cardiovascular event averts roughly 5–15 DALYs depending on fatality and disability; 10 is a mid planning value."}
+  ]},
+
+  {sec:"Stipends, staff & recognition", note:"Care Group Volunteers get support, not a stipend; Promoters get a small stipend.", collapsed:true, items:[
+    {id:"c_lmtStipend", label:"Promoter stipend, per month", type:"money", val:20, min:0, max:200, step:5},
+    {id:"c_stipendMonths", label:"Months the Promoter stipend runs", type:"int", val:13, min:1, max:48, step:1},
+    {id:"c_nhis", label:"Health-insurance premium per Promoter (self + family)", type:"money", val:15, min:0, max:200, step:5,
+      info:"Enrolment in a national or community health-insurance scheme for the Promoter and family, as a non-cash-salary benefit."},
+    {id:"c_coordSal", label:"Field coordinator, per month", type:"money", val:350, min:0, max:4000, step:25, dep:"c_coordinators"},
+    {id:"c_choSupport", label:"Supervising-nurse field support, per nurse-month", type:"money", val:30, min:0, max:400, step:5},
+    {id:"c_choMonths", label:"Months of supervising-nurse field support", type:"int", val:13, min:1, max:48, step:1},
+    {id:"c_recognition", label:"Recognition & awards (lump sum)", type:"money", val:600, min:0, max:6000, step:50}
+  ]},
+
+  {sec:"Volunteer kits, screening equipment & supplies", note:"Per-volunteer support, shared measurement gear, and consumable supplies.", collapsed:true, items:[
+    {id:"c_tablet", label:"Tablet (per Care Group Volunteer / Promoter)", type:"money", val:100, min:0, max:600, step:10, dep:"c_tabletCounsel"},
+    {id:"c_ighaTablets", label:"— of which funded by IGHA (rest by the org)", type:"int", val:31, min:0, max:400, step:1, dep:"c_tabletCounsel"},
+    {id:"c_meaningfulUser", label:"Meaningful app licence, per user per year", type:"money", val:180, min:0, max:600, step:10, dep:"c_tabletCounsel",
+      info:"Annual per-user licence for IGHA's Meaningful data platform, budgeted as cash for CGVs and Promoters carrying tablets. If your project has negotiated it as in-kind, set this to 0 and record the value in the memo field further down."},
+    {id:"c_lmtKit", label:"Promoter work-support kit (bicycle, boots, torch, bag, phone)", type:"money", val:173, min:0, max:600, step:10},
+    {id:"c_lmtID", label:"Promoter ID (T-shirt + badge)", type:"money", val:6, min:0, max:60, step:1},
+    {id:"c_lmKit", label:"Care Group Volunteer kit (yearly gift, badge, T-shirt)", type:"money", val:16, min:0, max:120, step:2},
+    {id:"c_bpMonitor", label:"Blood-pressure monitor (shared)", type:"money", val:30, min:0, max:200, step:5, dep:"c_bpScreen"},
+    {id:"c_largeCuff", label:"Large-adult cuffs (lump sum)", type:"money", val:80, min:0, max:600, step:10, dep:"c_bpScreen"},
+    {id:"c_batteries", label:"Monitor batteries, per set", type:"money", val:4, min:0, max:40, step:1, dep:"c_bpScreen"},
+    {id:"c_waistTape", label:"Waist tape (ADRS), per volunteer", type:"money", val:2, min:0, max:30, step:1, dep:"c_adrs"},
+    {id:"c_scale", label:"Weighing scale (shared, per Care Group)", type:"money", val:35, min:0, max:200, step:5, dep:"c_adrs"},
+    {id:"c_heightBoard", label:"Height board (shared, per Care Group)", type:"money", val:15, min:0, max:120, step:5, dep:"c_adrs"},
+    {id:"c_diabetesLab", label:"Blood-glucose (diabetes) testing & supplies", type:"toggle", val:0, dep:"c_adrs",
+      info:"Off by default: the ADRS is a verbal screen, and confirmatory testing is usually done by government clinical staff. Turn on when the project itself funds point-of-care blood-glucose testing beyond what a typical government programme covers. The three cost lines below cover a full field kit: (1) a per-station durable kit — glucometer(s) with spare batteries, lancing device, insulated cooler box for strips, reusable sharps container; (2) per-test consumables — strip, single-use lancet, alcohol swab, gauze, glove; (3) per-station safety, waste and quality-control — control solution, biohazard bags and sharps disposal, hand sanitizer and clean water. PLANNING PLACEHOLDER COSTS: the supplies list you provided names the items, not prices, so the defaults below are placeholders — replace them."},
+    {id:"c_gluTestShare", label:"Share of adults 35+ getting a blood-glucose test", type:"pct", val:20, min:0, max:100, step:5, dep:"c_diabetesLab",
+      info:"The higher-risk share flagged by the ADRS and given a point-of-care glucose test. Placeholder — set from your own risk-score distribution."},
+    {id:"c_dmKit", label:"Testing-station kit per Care Group (meter + spare batteries, lancing device, cooler box, sharps container)", type:"money", val:90, min:0, max:600, step:10, dep:"c_diabetesLab",
+      info:"Durable per-station equipment, one per Care Group. Placeholder cost."},
+    {id:"c_dmPerTest", label:"Consumables per test (strip, lancet, swab, gauze, glove)", type:"money", val:0.9, min:0, max:10, step:.1, dep:"c_diabetesLab",
+      info:"Per-person consumable cost. Placeholder — replace with your negotiated bulk price."},
+    {id:"c_dmWaste", label:"Safety, waste & QC per station (control solution, sharps/biohazard disposal, sanitizer, clean water)", type:"money", val:120, min:0, max:2000, step:10, dep:"c_diabetesLab",
+      info:"Per-Care-Group allowance for the non-negotiable safety and waste items and quality-control solution. Placeholder cost."}
+  ]},
+
+  {sec:"Training, census & community", note:"Set-up activities and recurring community costs.", collapsed:true, items:[
+    {id:"c_centralTrain", label:"Central training, per person per day", type:"money", val:15, min:0, max:120, step:5},
+    {id:"c_trainDays", label:"Central training, number of days", type:"int", val:5, min:0, max:15, step:1},
+    {id:"c_lmMaterials", label:"CGV in-village training materials, per CGV", type:"money", val:8, min:0, max:80, step:1},
+    {id:"c_trainSupplies", label:"Training supplies (lump sum)", type:"money", val:200, min:0, max:3000, step:50},
+    {id:"c_refresherC", label:"Refresher trainings (lump sum)", type:"money", val:250, min:0, max:4000, step:50},
+    {id:"c_dayLaborC", label:"Census enumeration, per person-day (10 HH/day)", type:"money", val:10, min:0, max:60, step:1},
+    {id:"c_entryC", label:"Community entry & sensitization (lump sum)", type:"money", val:700, min:0, max:6000, step:50},
+    {id:"c_refreshC", label:"Community meeting refreshments (lump sum)", type:"money", val:500, min:0, max:6000, step:50, dep:"c_norms"},
+    {id:"c_durbar", label:"Community durbar / recognition event (lump sum)", type:"money", val:300, min:0, max:4000, step:50, dep:"c_norms"},
+    {id:"c_kpcBase", label:"KPC baseline survey (lump sum)", type:"money", val:300, min:0, max:6000, step:50, dep:"c_kpc"},
+    {id:"c_kpcEnd", label:"KPC endline survey (lump sum)", type:"money", val:600, min:0, max:8000, step:50, dep:"c_kpc"},
+    {id:"c_printing", label:"Printing & forms (lump sum)", type:"money", val:300, min:0, max:4000, step:50},
+    {id:"c_coordTransport", label:"Coordinator local transport, per month", type:"money", val:80, min:0, max:1000, step:10, dep:"c_coordinators"},
+    {id:"c_airtime", label:"Airtime, per phone per month", type:"money", val:5, min:0, max:60, step:1},
+    {id:"c_saFacility", label:"Facility HTN strengthening (lump sum)", type:"money", val:1200, min:0, max:12000, step:100}
+  ]},
+
+  {sec:"Onboarding, reserves & in-kind", note:"One-time onboarding, contingency, and memo items.", collapsed:true, items:[
+    {id:"c_kenyaHost", label:"Center-of-Excellence hosting, per staff (10 days)", type:"money", val:1200, min:0, max:8000, step:100, dep:"c_kenyaTrain"},
+    {id:"c_flights", label:"Flights to the Center of Excellence, per staff", type:"money", val:900, min:0, max:6000, step:100, dep:"c_kenyaTrain"},
+    {id:"c_nStaffTrain", label:"Staff sent for onboarding training", type:"int", val:2, min:0, max:10, step:1, dep:"c_kenyaTrain"},
+    {id:"c_travelInc", label:"Travel incidentals (visas, transfers)", type:"money", val:200, min:0, max:3000, step:50, dep:"c_kenyaTrain"},
+    {id:"c_contPctC", label:"Contingency / foreign-exchange reserve", type:"pct", val:8, min:0, max:20, step:1, help:"Applied to cash lines (org + IGHA)."},
+    {id:"c_meaningfulMemo", label:"IGHA technical oversight, per year (memo)", type:"money", val:0, min:0, max:100000, step:500,
+      info:"Senior technical oversight IGHA provides without cash charge. Enter an estimated annual value to show as a memo; it is not added to the cash total. The Meaningful app licence itself is now budgeted as cash above."},
+    {id:"c_govInkindC", label:"Government / clinical in-kind, per year (memo)", type:"money", val:0, min:0, max:200000, step:1000,
+      info:"Clinical care, confirmatory testing, medicines through government health insurance, and supervising-nurse salaries the project uses without paying cash. Memo only."}
+  ]}
+];
+
+/* ---------- assemble defaults ---------- */
+const ALLSETS = {MCHN:{fields:MCHN_FIELDS, setup:SETUP_MCHN}, CMD:{fields:CMD_FIELDS, setup:SETUP_CMD}};
+const DEFAULTS = {};
+["MCHN","CMD"].forEach(t=>{
+  ALLSETS[t].setup.forEach(f=>DEFAULTS[f.id]=f.val);
+  ALLSETS[t].fields.forEach(s=>s.items.forEach(f=>DEFAULTS[f.id]=f.val));
+});
+
+/* ---------- restore a saved scenario, if present ---------- */
+const SAVED = (typeof window!=="undefined" && window.__CBIO_SAVED) || null;
+let TYPE = "MCHN";
+const IDENT = {org:"",area:"",country:"",cur:"",fx:0,start:""};
+if (SAVED){
+  if (SAVED.type) TYPE = SAVED.type;
+  if (SAVED.ident) Object.assign(IDENT, SAVED.ident);
+  if (SAVED.values) Object.keys(SAVED.values).forEach(k=>{ if(k in DEFAULTS) DEFAULTS[k]=SAVED.values[k]; });
+}
+let V = Object.assign({}, DEFAULTS);
+
+/* ---------- formatting ---------- */
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const money2 = n => "$" + (Math.round(n*100)/100).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const numf = (n,d=0) => (isFinite(n)?n:0).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d});
+const esc = s => (""+s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const ceil = n => Math.ceil(n - 1e-9);
+const line = (label,value,cls) => '<div class="line '+(cls||"")+'"><span>'+label+'</span><span class="v">'+value+'</span></div>';
+
+/* ============================================================= *
+ *  COST MODELS
+ *  Each returns { shape:{label:value...}, lines:[ {cat,label,unit,
+ *    cost,qty,total,oneTime,funder} ], durMonths, setupMonths, inkind:[] }
+ *  funder in {"org","igha"}; in-kind lines live in inkind[].
+ * ============================================================= */
+
+function modelMCHN(){
+  const S={};
+  const pop=V.m_pop, perHH=V.m_perHH||1;
+  const HH=pop/perHH;
+  const communities=ceil(HH/V.m_hhPerComm);
+  const CHV = V.m_homeVisits ? ceil(HH/V.m_hhPerCHV) : ceil(HH/V.m_hhPerComm);
+  const coordinators=Math.max(1, ceil(communities/V.m_commPerCoord));
+  const births=pop*V.m_cbr/1000;
+  const childrenU2=births*1.95;
+  const pregnant=births*0.76;
+  const mothers=childrenU2/1.08;
+  const womenEnrolled=pregnant+mothers;
+  const directBen=childrenU2+mothers+pregnant;
+  let CGV=0,careGroups=0,promoters=0;
+  if(V.m_careGroups){
+    CGV=ceil(womenEnrolled/V.m_womenPerCGV);
+    careGroups=ceil(CGV/V.m_cgvPerGroup);
+    promoters=ceil(careGroups/V.m_groupsPerProm);
+  }
+  const facilities=V.m_cbc?V.m_nFacilities:0;
+  const nurses=facilities*V.m_nursesPerFac;
+  const years=V.m_years, durMonths=years*12;
+  const facilityDeliveries=births*(V.m_facilityDeliv/100);
+
+  S["Catchment population"]=numf(pop);
+  S["Households"]=numf(HH);
+  S["Communities"]=numf(communities);
+  S["Paid/stipended CHWs/CHVs"]=numf(CHV);
+  S["Coordinators / field officers"]=numf(coordinators,0);
+  if(V.m_careGroups){ S["Care Group Volunteers"]=numf(CGV); S["Care Groups"]=numf(careGroups); S["Care Group promoters"]=numf(promoters); }
+  S["Annual births"]=numf(births);
+  S["Direct beneficiaries (women + under-2s)"]=numf(directBen);
+  if(facilities){ S["Birthing centers"]=numf(facilities); S["Extra nurses"]=numf(nurses); }
+
+  const L=[], IK=[];
+  // recurring lines run every year: lineYears = project years; one-time lines = 1 year.
+  const push=(cat,label,unit,cost,qty,oneTime,funder)=>{
+    if(qty>0&&cost>0){ const ly = oneTime?1:years; L.push({cat,label,unit,cost,qty,lineYears:ly,total:cost*qty*ly,oneTime:!!oneTime,funder:funder||"org"}); }
+  };
+
+  // Personnel & stipends (recurring / annual)
+  push("Personnel & stipends","CHW/CHV stipends","CHV-year",V.m_chvStipend*12,CHV,false,"org");
+  if(V.m_careGroups) push("Personnel & stipends","Care Group promoter stipends","promoter-year",V.m_promStipend*12,promoters,false,"org");
+  push("Personnel & stipends","Coordinators / field officers","FTE-year",V.m_fieldSal,coordinators,false,"org");
+  push("Personnel & stipends","Project lead (part-charge)","year",V.m_projLead,1,false,"org");
+  if(facilities) push("Personnel & stipends","Birthing-center nurses (24/7 cover)","nurse-year",V.m_nurseSal,nurses,false,"org");
+
+  // Census & set-up (one-time)
+  if(V.m_vitalEvents){
+    push("Census & set-up","Census enumeration (extra CHV days, 10 HH/day)","person-day",V.m_dayLabor,ceil(HH/10),true,"org");
+    push("Census & set-up","Community mapping guides (30 HH/day)","person-day",V.m_dayLabor,ceil(HH/30),true,"org");
+    push("Census & set-up","Household numbering paint (1 can / 20 HH)","can",V.m_paintCan,ceil(HH/20),true,"org");
+  }
+  push("Census & set-up","CHV / promoter orientation training","person",V.m_chvTrain,CHV+promoters,true,"org");
+  if(V.m_careGroups) push("Census & set-up","CGV orientation & selection","CGV",V.m_cgvTrain,CGV,true,"org");
+  push("Census & set-up","Community entry & sensitization","community",V.m_entry,communities,true,"org");
+  if(V.m_ba) push("Census & set-up","Barrier Analysis + Positive Deviance Inquiry","study",V.m_baCost,1,true,"org");
+
+  // Equipment (one-time)
+  const cgvDigital = V.m_meaningful && V.m_cgvTablets && V.m_careGroups;
+  if(V.m_meaningful){
+    push("Equipment","Tablets for CHWs & promoters","tablet",V.m_tablet,CHV+promoters,true,"org");
+    if(cgvDigital) push("Equipment","Tablets for Care Group Volunteers","tablet",V.m_tablet,CGV,true,"org");
+  }
+  if(V.m_careGroups) push("Equipment","CGV pouch for flipchart & materials + ID","CGV",V.m_cgvTablet,CGV,true,"org");
+  push("Equipment","Anthropometry kits (scale, board, MUAC)","kit",V.m_anthroKit,CHV,true,"org");
+  push("Equipment","CHV / promoter field kits","kit",V.m_chvKit,CHV+promoters,true,"org");
+
+  // Birthing center capital (one-time) + supplies (recurring)
+  if(facilities){
+    push("Birthing centers","Solar PV array with battery backup","facility",V.m_solar,facilities,true,"org");
+    push("Birthing centers","Water borehole drilling & piping","facility",V.m_borehole,facilities,true,"org");
+    push("Birthing centers","Birthing space & renovation","facility",V.m_birthSpace,facilities,true,"org");
+    push("Birthing centers","Delivery & newborn clinical equipment","facility",V.m_clinEquip,facilities,true,"org");
+    push("Birthing centers","Non-pharmaceutical supplies","facility-year",V.m_cbcSupplies,facilities,false,"org");
+  }
+
+  // Community & recurring
+  if(V.m_vhc) push("Community & recurring","Village Health Committee meetings","community-year",V.m_vhcCost,communities,false,"org");
+  const activeVols=CHV+promoters+(V.m_careGroups?CGV:0);
+  push("Community & recurring","Volunteer recognition & appreciation","volunteer-year",V.m_recognition,activeVols,false,"org");
+  push("Community & recurring","Volunteer refresher & supervision","volunteer-year",V.m_refresher,activeVols,false,"org");
+  if(V.m_meaningful){
+    const meaningfulUsers = CHV+promoters + (cgvDigital?CGV:0);
+    push("Community & recurring","Meaningful app licences","user-year",V.m_meaningfulUser,meaningfulUsers,false,"org");
+    push("Community & recurring","SMS credits & staff airtime","year",V.m_sms,1,false,"org");
+  }
+  push("Community & recurring","Staff transport between communities","year",V.m_transport,1,false,"org");
+  push("Community & recurring","Office operations (part-charge)","year",V.m_office,1,false,"org");
+  if(V.m_tba) push("Community & recurring","TBA facility-delivery incentives","delivery-year",V.m_tbaInc,facilityDeliveries,false,"org");
+
+  // M&E
+  if(V.m_kpc){
+    push("Monitoring & evaluation","KPC baseline survey","round",V.m_kpcRound,1,true,"org");
+    push("Monitoring & evaluation","KPC endline survey","round",V.m_kpcRound,1,true,"org");
+  }
+  push("Monitoring & evaluation","Data-quality audit & external review","year",V.m_audit,1,false,"org");
+  if(V.m_dissem) push("Monitoring & evaluation","Dissemination / scale-up","year",V.m_dissemCost,1,false,"org");
+
+  // IGHA
+  push("IGHA technical support","IGHA technical assistance / monitoring visit","year",V.m_taVisit,1,false,"igha");
+  push("IGHA technical support","IGHA evaluation quality assurance","year",V.m_evalQA,1,false,"igha");
+
+  // in-kind memo
+  if(V.m_govInkind>0) IK.push({label:"Government salaries, clinical care & medicines",unit:"year",cost:V.m_govInkind,qty:1,total:V.m_govInkind,oneTime:false});
+
+  // impact estimate (lives saved + DALYs)
+  const u5PerYr = births*(V.m_u5mr/1000)*(V.m_u5reduce/100);
+  const u5Tot = u5PerYr*years;
+  const matReduce = V.m_cbc ? V.m_mmrreduce/100 : 0;
+  const matPerYr = births*(V.m_mmr/100000)*matReduce;
+  const matTot = matPerYr*years;
+  const livesTot = u5Tot+matTot;
+  const dalys = livesTot*V.m_dalyPerDeath;
+  const impact = {u5PerYr, u5Tot, matPerYr, matTot, livesTot, dalys,
+    mmrEntered:V.m_mmr>0, u5Entered:V.m_u5mr>0, cbcOn:!!V.m_cbc, dalyPer:V.m_dalyPerDeath};
+
+  return {shape:S, lines:L, inkind:IK, durMonths, contPct:V.m_contPct,
+          pop, directBen, HH, years:durMonths/12, impact, contBase:"cash"};
+}
+
+function modelCMD(){
+  const S={};
+  const pop=V.c_pop, perHH=V.c_perHH||1;
+  const HH=pop/perHH;
+  const LMs=ceil(HH/V.c_hhPerLM);
+  const LMTs=ceil(LMs/V.c_lmPerLMT);
+  const careGroups=LMTs;
+  const promoters=V.c_promoters;
+  const coordinators=V.c_coordinators;
+  const adults35=pop*V.c_pct35/100;
+  const volunteers=LMs+LMTs;
+  const totalTablets=V.c_tabletCounsel?(LMs+LMTs+V.c_spareTablets):0;
+  const ighaTablets=Math.min(V.c_ighaTablets,totalTablets);
+  const orgTablets=totalTablets-ighaTablets;
+  const monitors=V.c_bpScreen?ceil(volunteers/V.c_volPerMonitor):0;
+  const durMonths=V.c_months;
+
+  S["Catchment population"]=numf(pop);
+  S["Households"]=numf(HH);
+  S["Care Group Volunteers"]=numf(LMs);
+  S["Promoters / Care Groups"]=numf(LMTs);
+  S["Supervising nurses (in-kind)"]=numf(promoters);
+  S["Field coordinators"]=numf(coordinators,0);
+  S["Adults 35+ (screening target)"]=numf(adults35);
+  if(totalTablets) S["Tablets"]=numf(totalTablets)+"  (IGHA "+numf(ighaTablets)+" / org "+numf(orgTablets)+")";
+  if(monitors) S["BP monitors"]=numf(monitors);
+
+  const L=[], IK=[];
+  // CMD quantities already embed the project's months, so each line is a full-project total (lineYears=1).
+  const push=(cat,label,unit,cost,qty,oneTime,funder)=>{ if(qty>0&&cost>0) L.push({cat,label,unit,cost,qty,lineYears:1,total:cost*qty,oneTime:!!oneTime,funder:funder||"org"}); };
+
+  // Stipends & staff (recurring)
+  push("Stipends & staff","Promoter stipend","promoter-month",V.c_lmtStipend,LMTs*V.c_stipendMonths,false,"org");
+  push("Stipends & staff","Promoter health-insurance cover (self + family)","promoter",V.c_nhis,LMTs,false,"org");
+  if(coordinators>0) push("Stipends & staff","Field coordinator (part-time)","coord-month",V.c_coordSal,coordinators*durMonths,false,"org");
+  push("Stipends & staff","Supervising-nurse field support","nurse-month",V.c_choSupport,promoters*V.c_choMonths,false,"org");
+  push("Stipends & staff","Recognition & awards","lump",V.c_recognition,1,false,"org");
+
+  // Volunteer kits & support (one-time)
+  push("Volunteer kits","Care Group Volunteer kits (gift, badge, T-shirt)","CGV",V.c_lmKit,LMs,true,"org");
+  push("Volunteer kits","Promoter work-support kits (bike, boots, torch, bag, phone)","promoter",V.c_lmtKit,LMTs,true,"org");
+  push("Volunteer kits","Promoter IDs (T-shirt + badge)","promoter",V.c_lmtID,LMTs,true,"org");
+
+  // Tablets (one-time), split funders
+  if(totalTablets){
+    push("Equipment","Tablets (organization share)","tablet",V.c_tablet,orgTablets,true,"org");
+    push("Equipment","Tablets (IGHA share)","tablet",V.c_tablet,ighaTablets,true,"igha");
+  }
+  // Screening equipment (one-time)
+  if(V.c_bpScreen){
+    push("Equipment","Blood-pressure monitors (1 per "+V.c_volPerMonitor+" volunteers)","monitor",V.c_bpMonitor,monitors,true,"org");
+    push("Equipment","Large-adult cuffs","lump",V.c_largeCuff,1,true,"org");
+    push("Equipment","Monitor batteries","set",V.c_batteries,monitors,true,"org");
+  }
+  if(V.c_adrs){
+    push("Equipment","Waist tapes (ADRS)","tape",V.c_waistTape,volunteers,true,"org");
+    push("Equipment","Weighing scales (shared)","scale",V.c_scale,LMTs,true,"org");
+    push("Equipment","Height boards (shared)","board",V.c_heightBoard,LMTs,true,"org");
+  }
+  if(V.c_adrs && V.c_diabetesLab){
+    const gluTests = adults35*(V.c_gluTestShare/100);
+    push("Supplies","Diabetes testing-station kits (meter, spare batteries, lancing device, cooler box, sharps container)","Care Group",V.c_dmKit,LMTs,true,"org");
+    push("Supplies","Blood-glucose test consumables (strip, lancet, swab, gauze, glove)","person tested",V.c_dmPerTest,gluTests,true,"org");
+    push("Supplies","Safety, waste & QC supplies (control solution, sharps/biohazard disposal, sanitizer)","Care Group",V.c_dmWaste,LMTs,true,"org");
+  }
+  // Meaningful app licences (cash, per user per year)
+  if(V.c_tabletCounsel && V.c_meaningfulUser>0){
+    push("Community activities","Meaningful app licences","user-year",V.c_meaningfulUser,volunteers*(durMonths/12),false,"org");
+  }
+
+  // Training & census (one-time)
+  const trainees=LMTs+promoters+ceil(coordinators);
+  push("Training & census","Central training ("+V.c_trainDays+" days)","person-day",V.c_centralTrain,trainees*V.c_trainDays,true,"org");
+  push("Training & census","CGV in-village training materials","CGV",V.c_lmMaterials,LMs,true,"org");
+  push("Training & census","Training supplies","lump",V.c_trainSupplies,1,true,"org");
+  push("Training & census","Refresher trainings","lump",V.c_refresherC,1,false,"org");
+  push("Training & census","Census enumeration (10 HH/day)","person-day",V.c_dayLaborC,ceil(HH/10),true,"org");
+  push("Training & census","Printing & forms","lump",V.c_printing,1,true,"org");
+
+  // Community (one-time + recurring)
+  push("Community activities","Community entry & sensitization","lump",V.c_entryC,1,true,"org");
+  if(V.c_norms){
+    push("Community activities","Community meeting refreshments","lump",V.c_refreshC,1,false,"org");
+    push("Community activities","Community durbar / recognition","lump",V.c_durbar,1,false,"org");
+  }
+  push("Community activities","Coordinator local transport","coord-month",V.c_coordTransport,coordinators*durMonths,false,"org");
+  push("Community activities","Airtime (Promoters, nurses, coordinator)","phone-month",V.c_airtime,(LMTs+promoters+ceil(coordinators))*durMonths,false,"org");
+  push("Community activities","Facility HTN strengthening","lump",V.c_saFacility,1,true,"org");
+
+  // Screening supplies / measurement
+  if(V.c_kpc){
+    push("Monitoring & evaluation","KPC baseline survey","lump",V.c_kpcBase,1,true,"org");
+    push("Monitoring & evaluation","KPC endline survey","lump",V.c_kpcEnd,1,false,"org");
+  }
+
+  // Onboarding (one-time, IGHA hosting)
+  if(V.c_kenyaTrain){
+    push("Onboarding","Center-of-Excellence hosting (10 days)","staff",V.c_kenyaHost,V.c_nStaffTrain,true,"igha");
+    push("Onboarding","Flights to Center of Excellence","staff",V.c_flights,V.c_nStaffTrain,true,"org");
+    push("Onboarding","Travel incidentals","lump",V.c_travelInc,1,true,"org");
+  }
+
+  // in-kind memos
+  if(V.c_meaningfulMemo>0) IK.push({label:"IGHA technical oversight",unit:"year",cost:V.c_meaningfulMemo,qty:1,total:V.c_meaningfulMemo,oneTime:false});
+  if(V.c_govInkindC>0) IK.push({label:"Clinical care, confirmatory testing & medicines; supervising-nurse salaries",unit:"year",cost:V.c_govInkindC,qty:1,total:V.c_govInkindC,oneTime:false});
+
+  // impact estimate: hypertension case-finding & control funnel + CV events averted
+  const bpOn=!!V.c_bpScreen;
+  const screened=bpOn ? adults35*V.c_screenRate/100 : 0;
+  const elevated=screened*V.c_htnPrev/100;
+  const newlyIdentified=elevated*V.c_undiagnosed/100;
+  const started=newlyIdentified*V.c_treatStart/100;
+  const controlled=started*V.c_controlRate/100;
+  const cvEvents=controlled*(V.c_cvBaseRate/100)*(V.c_cvRRR/100)*V.c_benefitYears;
+  const dalys=cvEvents*V.c_dalyPerCV;
+  const impact={bpOn, screened, elevated, newlyIdentified, started, controlled, cvEvents, dalys,
+    benefitYears:V.c_benefitYears, dalyPerCV:V.c_dalyPerCV, cvOn:V.c_cvBaseRate>0};
+
+  return {shape:S, lines:L, inkind:IK, durMonths, contPct:V.c_contPctC,
+          pop, directBen:adults35, HH, years:durMonths/12, impact, contBase:"cash"};
+}
+
+/* ============================================================= *
+ *  AGGREGATION  (funder split, categories, year buckets, contingency)
+ * ============================================================= */
+function aggregate(m){
+  const durMonths=m.durMonths;
+  const nYears = Math.max(1, ceil(durMonths/12));   // number of calendar-year columns
+  const yearsFrac = durMonths/12;                    // for annualisation
+
+  // funder totals of raw lines (each line.total is a FULL-project amount)
+  let org=0, igha=0; const cats={};
+  m.lines.forEach(l=>{
+    if(l.funder==="igha") igha+=l.total; else org+=l.total;
+    cats[l.cat]=(cats[l.cat]||0)+l.total;
+  });
+
+  // one-time vs recurring split (full-project amounts)
+  let oneTimeOrg=0,oneTimeIgha=0,recurOrg=0,recurIgha=0;
+  m.lines.forEach(l=>{
+    const isI=l.funder==="igha";
+    if(l.oneTime){ if(isI) oneTimeIgha+=l.total; else oneTimeOrg+=l.total; }
+    else { if(isI) recurIgha+=l.total; else recurOrg+=l.total; }
+  });
+
+  const cashPre = org+igha;
+  const cont = cashPre*(m.contPct/100);
+  const contOrg = cashPre>0 ? cont*(org/cashPre) : cont;
+  const contIgha = cont - contOrg;
+  const orgTot=org+contOrg, ighaTot=igha+contIgha, cashTot=cashPre+cont;
+
+  // in-kind memo: per-year memo lines multiply by whole-project years
+  const inkindTotal = m.inkind.reduce((s,l)=>s + l.total*(l.oneTime?1:yearsFrac), 0);
+
+  // per-year buckets: one-time -> Year 1; recurring spread evenly by calendar months
+  const yearRows=[];
+  for(let y=1;y<=nYears;y++){
+    const monthsInYear = Math.min(12, durMonths-12*(y-1));
+    const rf = monthsInYear/durMonths;              // share of recurring in this year
+    const o=(y===1?oneTimeOrg:0)+recurOrg*rf;
+    const i=(y===1?oneTimeIgha:0)+recurIgha*rf;
+    const base=o+i, c=base*(m.contPct/100);
+    yearRows.push({y, org:o, igha:i, cont:c, total:base+c});
+  }
+
+  return {years:yearsFrac, nYears, org:orgTot, igha:ighaTot, orgPre:org, ighaPre:igha,
+          cash:cashTot, cont, inkind:inkindTotal, cats, yearRows, cashPre, contPct:m.contPct};
+}
+
+/* ============================================================= *
+ *  BUILD THE FORM
+ * ============================================================= */
+const host=document.getElementById("inputs");
+function fieldHTML(f){
+  const infoBtn = f.info ? '<button class="info" type="button" data-pop="'+f.id+'_pop" aria-expanded="false" aria-label="More about '+esc(f.label)+'">i</button>' : '';
+  const pop = f.info ? '<div class="pop" id="'+f.id+'_pop" role="note">'+f.info.split("||").map(p=>"<p>"+esc(p.trim())+"</p>").join("")+'</div>' : '';
+  if(f.type==="toggle"){
+    return '<div class="field"'+(f.dep?' data-dep="'+f.dep+'"':'')+'>'+
+      '<div class="top"><label for="'+f.id+'">'+f.label+infoBtn+'</label>'+
+      '<span class="switch"><input type="checkbox" id="'+f.id+'"'+(f.val?" checked":"")+'>'+
+      '<span id="'+f.id+'_t">'+(f.val?"On":"Off")+'</span></span></div>'+
+      (f.help?'<div class="help">'+f.help+'</div>':'')+pop+'</div>';
+  }
+  const pfx = f.type==="money" ? '<span class="unitpfx">$</span>' : '';
+  const sfx = f.type==="pct" ? '<span class="unitpfx" style="margin-left:4px">%</span>' : '';
+  return '<div class="field"'+(f.dep?' data-dep="'+f.dep+'"':'')+'>'+
+    '<div class="top"><label for="'+f.id+'">'+f.label+infoBtn+'</label>'+
+    '<span style="white-space:nowrap">'+pfx+'<input class="num" type="number" id="'+f.id+'" value="'+f.val+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'">'+sfx+'</span></div>'+
+    '<input type="range" id="'+f.id+'_r" value="'+f.val+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'" aria-label="'+esc(f.label)+' slider">'+
+    (f.help?'<div class="help">'+f.help+'</div>':'')+pop+'</div>';
+}
+function buildForm(){
+  host.innerHTML="";
+  const setup=ALLSETS[TYPE].setup, fields=ALLSETS[TYPE].fields;
+  // Setup/duration card first
+  let s='<details class="card" open><summary><h2>Project period</h2><span class="cardnote">Project length. One-time start-up costs load into Year 1; recurring costs repeat each year.</span></summary><div class="fields">';
+  setup.forEach(f=>s+=fieldHTML(f)); s+='</div></details>';
+  fields.forEach(sec=>{
+    s+='<details class="card"'+(sec.collapsed?'':' open')+'><summary><h2>'+sec.sec+'</h2><span class="cardnote">'+sec.note+'</span></summary><div class="fields">';
+    sec.items.forEach(f=>s+=fieldHTML(f));
+    s+='</div></details>';
+  });
+  host.innerHTML=s;
+  wireForm();
+  wirePops();
+}
+function currentFields(){
+  return ALLSETS[TYPE].setup.concat(ALLSETS[TYPE].fields.reduce((a,s)=>a.concat(s.items),[]));
+}
+function wireForm(){
+  currentFields().forEach(f=>{
+    const el=document.getElementById(f.id); if(!el) return;
+    if(f.type==="toggle"){
+      el.checked=!!V[f.id];
+      document.getElementById(f.id+"_t").textContent=V[f.id]?"On":"Off";
+      el.addEventListener("change",()=>{ V[f.id]=el.checked?1:0; document.getElementById(f.id+"_t").textContent=el.checked?"On":"Off"; compute(); });
+    } else {
+      const r=document.getElementById(f.id+"_r");
+      el.value=V[f.id]; if(r) r.value=V[f.id];
+      const sync=(src,other)=>{ let n=parseFloat(src.value); if(isNaN(n))return; n=Math.min(f.max,Math.max(f.min,n)); V[f.id]=n; if(other)other.value=n; compute(); };
+      el.addEventListener("input",()=>sync(el,r));
+      if(r) r.addEventListener("input",()=>sync(r,el));
+    }
+  });
+}
+function wirePops(){
+  document.querySelectorAll(".info").forEach(btn=>{
+    btn.addEventListener("click",e=>{
+      e.stopPropagation();
+      const pop=document.getElementById(btn.dataset.pop);
+      const open=pop.classList.contains("show");
+      closePops();
+      if(!open){ pop.classList.add("show"); btn.setAttribute("aria-expanded","true"); }
+    });
+  });
+}
+function closePops(){
+  document.querySelectorAll(".pop.show").forEach(p=>{ p.classList.remove("show"); const b=document.querySelector('.info[data-pop="'+p.id+'"]'); if(b) b.setAttribute("aria-expanded","false"); });
+}
+document.addEventListener("click",()=>closePops());
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closePops(); });
+
+/* ---------- identity fields ---------- */
+function wireIdentity(){
+  const map={id_org:"org",id_area:"area",id_country:"country",id_cur:"cur",id_fx:"fx",id_start:"start"};
+  Object.keys(map).forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    if(IDENT[map[id]]!==undefined && IDENT[map[id]]!=="" && IDENT[map[id]]!==0) el.value=IDENT[map[id]];
+    el.addEventListener("input",()=>{ IDENT[map[id]] = (id==="id_fx")?(parseFloat(el.value)||0):el.value; updateFunderLabels(); compute(); });
+  });
+  document.getElementById("scenarioName").value = (SAVED&&SAVED.name)||"";
+}
+function updateFunderLabels(){
+  document.getElementById("fl1").textContent = IDENT.org ? IDENT.org : "Implementing org";
+}
+
+/* ============================================================= *
+ *  COMPUTE + RENDER
+ * ============================================================= */
+function getModel(){ return TYPE==="MCHN"?modelMCHN():modelCMD(); }
+
+function compute(){
+  document.querySelectorAll(".field[data-dep]").forEach(el=>{ const dep=el.dataset.dep; el.classList.toggle("off", !V[dep]); });
+
+  const m=getModel(), A=aggregate(m);
+  const lc=IDENT.cur, fx=IDENT.fx;
+  const loc = v => (fx>0&&lc) ? " ("+numf(v*fx)+" "+lc+")" : "";
+
+  // balance bar
+  const mx=Math.max(A.org,A.igha,A.inkind,1);
+  document.getElementById("barA").style.width=(A.org/mx*100)+"%";
+  document.getElementById("barB").style.width=(A.igha/mx*100)+"%";
+  document.getElementById("barC").style.width=(A.inkind/mx*100)+"%";
+  document.getElementById("valA").textContent=money(A.org);
+  document.getElementById("valB").textContent=money(A.igha);
+  document.getElementById("valC").textContent=A.inkind?money(A.inkind):"—";
+  document.getElementById("totVal").textContent=money(A.cash);
+  document.getElementById("totSub").textContent=A.years.toFixed(A.years%1?1:0)+"-year project"+(lc&&fx>0?"  ·  "+numf(A.cash*fx)+" "+lc:"");
+  const perCap = m.pop? A.cash/A.years/m.pop : 0;
+  document.getElementById("pcVal").textContent=money2(perCap);
+  document.getElementById("pcSub").textContent="per person per year";
+
+  updateFunderLabels();
+
+  // program shape
+  let sh=""; Object.keys(m.shape).forEach(k=>{ sh+='<div class="line"><span>'+k+'</span><span class="v">'+m.shape[k]+'</span></div>'; });
+  document.getElementById("shape").innerHTML=sh;
+
+  // categories
+  const catOrder=Object.keys(A.cats);
+  let ct=""; catOrder.forEach(c=>{ ct+='<div class="line"><span>'+c+'</span><span class="v">'+money(A.cats[c])+'</span></div>'; });
+  ct+='<div class="line sub"><span>Subtotal (before contingency)</span><span class="v">'+money(A.cashPre)+'</span></div>';
+  ct+='<div class="line"><span>Contingency / FOREX ('+A.contPct+'%)</span><span class="v">'+money(A.cont)+'</span></div>';
+  ct+='<div class="line total"><span>Total cash budget</span><span class="v">'+money(A.cash)+'</span></div>';
+  document.getElementById("cats").innerHTML=ct;
+
+  // funders
+  const orgLabel=IDENT.org||"Implementing org";
+  let fn='<div class="line"><span>'+esc(orgLabel)+'</span><span class="v">'+money(A.org)+'</span></div>'+
+         '<div class="line"><span>IGHA</span><span class="v">'+money(A.igha)+'</span></div>'+
+         '<div class="line total"><span>Total cash</span><span class="v">'+money(A.cash)+'</span></div>';
+  document.getElementById("funders").innerHTML=fn;
+  document.getElementById("inkindNote").innerHTML = A.inkind
+    ? "<strong>"+money(A.inkind)+"</strong> in in-kind support over the project (government/clinical salaries, medicines, platform licensing). Counted as a memo, not cash."
+    : "In-kind support (government salaries, clinical care, medicines, platform licensing) is provided but no cash value has been entered. Add one in the last input card to show it here.";
+
+  // years table
+  let yt='<table class="yr"><thead><tr><th>Funder</th>';
+  A.yearRows.forEach(r=>yt+='<th>Yr '+r.y+'</th>'); yt+='<th>Total</th></tr></thead><tbody>';
+  const rowFor=(label,key)=>{ let s='<tr><td>'+esc(label)+'</td>'; let tot=0; A.yearRows.forEach(r=>{ s+='<td>'+money(r[key])+'</td>'; tot+=r[key]; }); s+='<td>'+money(tot)+'</td></tr>'; return s; };
+  yt+=rowFor(orgLabel,"org");
+  yt+=rowFor("IGHA","igha");
+  yt+='<tr class="tot"><td>Total</td>';
+  A.yearRows.forEach(r=>yt+='<td>'+money(r.total)+'</td>'); yt+='<td>'+money(A.cash)+'</td></tr>';
+  yt+='</tbody></table>';
+  document.getElementById("years").innerHTML=yt;
+
+  // unit costs
+  const annual=A.cash/A.years;
+  document.getElementById("units").innerHTML=
+    '<div class="stat"><span>Total cash, whole project</span><span class="v">'+money(A.cash)+'</span></div>'+
+    '<div class="stat"><span>Cash per year (average)</span><span class="v">'+money(annual)+'</span></div>'+
+    '<div class="stat"><span>Cost per person per year</span><span class="v">'+money2(m.pop?annual/m.pop:0)+'</span></div>'+
+    '<div class="stat"><span>Cost per person, whole project</span><span class="v">'+money2(m.pop?A.cash/m.pop:0)+'</span></div>'+
+    '<div class="stat"><span>Cost per direct beneficiary per year</span><span class="v">'+money(m.directBen?annual/m.directBen:0)+'</span></div>'+
+    (fx>0&&lc?'<div class="callout">Local-currency conversions use '+numf(fx)+' '+esc(lc)+' per US$. Total ≈ '+numf(A.cash*fx)+' '+esc(lc)+'.</div>':'<div class="callout">Enter a local currency code and exchange rate at the top to see figures in local currency too.</div>');
+
+  // impact card
+  const impactCard=document.getElementById("impactCard");
+  const im=m.impact; let h="";
+  impactCard.style.display="";
+  if(TYPE==="MCHN"){
+    if(!im.u5Entered && !im.mmrEntered){
+      h='<div class="line muted"><span>Enter a current under-5 mortality rate and/or maternal mortality ratio in the "Estimated impact" input card to see lives saved and DALYs.</span><span class="v"></span></div>';
+    } else {
+      if(im.u5Entered){
+        h+=line("Under-5 deaths averted / year", numf(im.u5PerYr,1));
+        h+=line("Under-5 deaths averted, project", numf(im.u5Tot,1));
+      }
+      if(im.mmrEntered){
+        if(im.cbcOn){
+          h+=line("Maternal deaths averted / year", numf(im.matPerYr,2));
+          h+=line("Maternal deaths averted, project", numf(im.matTot,1));
+        } else {
+          h+=line("Maternal deaths averted", "needs Casas Maternas", "muted");
+        }
+      }
+      h+=line("Total lives saved (project)", numf(im.livesTot,1), "sub");
+      h+=line("DALYs averted ("+im.dalyPer+" per death)", numf(im.dalys,0));
+      if(im.livesTot>0){
+        h+='<div class="stat" style="margin-top:6px"><span>Cost per life saved</span><span class="v">'+money(A.cash/im.livesTot)+'</span></div>';
+        h+='<div class="stat"><span>Cost per DALY averted</span><span class="v">'+money(A.cash/im.dalys)+'</span></div>';
+      }
+      h+='<div class="callout">Rough planning estimates: lives saved = annual births × mortality rate × expected reduction, summed over the project. Maternal figures require Community Birthing Centers (Casas Maternas) in the plan. Not a substitute for measured results.</div>';
+    }
+  } else { // CMD
+    if(!im.bpOn){
+      h='<div class="line muted"><span>Turn on blood-pressure screening to estimate case-finding, treatment, and control.</span><span class="v"></span></div>';
+    } else {
+      h+=line("Adults 35+ screened", numf(im.screened));
+      h+=line("Hypertensives found", numf(im.elevated));
+      h+=line("Newly diagnosed (were unaware)", numf(im.newlyIdentified));
+      h+=line("Started &amp; retained on treatment", numf(im.started));
+      h+=line("Reaching BP control (&lt;140/90)", numf(im.controlled), "sub");
+      if(im.cvOn){
+        h+=line("Cardiovascular events averted", numf(im.cvEvents,1));
+        h+=line("DALYs averted ("+im.dalyPerCV+" per event)", numf(im.dalys,0));
+      }
+      if(im.controlled>0){
+        h+='<div class="stat" style="margin-top:6px"><span>Cost per person brought to control</span><span class="v">'+money(A.cash/im.controlled)+'</span></div>';
+        if(im.cvEvents>0){
+          h+='<div class="stat"><span>Cost per CV event averted</span><span class="v">'+money(A.cash/im.cvEvents)+'</span></div>';
+          h+='<div class="stat"><span>Cost per DALY averted</span><span class="v">'+money(A.cash/im.dalys)+'</span></div>';
+        }
+      }
+      h+='<div class="callout">The funnel (screened → found → diagnosed → treated → controlled) is high-confidence. Cardiovascular events averted rest on assumed event rates and are illustrative; they count newly-diagnosed people brought to control only, so gains among already-diagnosed patients are additional and uncounted. Sustained control depends on the health system after the project.</div>';
+    }
+  }
+  document.getElementById("impact").innerHTML=h;
+
+  window.__CBIO_LAST={m,A};
+}
+
+/* ============================================================= *
+ *  TYPE SWITCH
+ * ============================================================= */
+function setType(t){
+  if(t===TYPE) return;
+  TYPE=t;
+  document.getElementById("typeMCHN").classList.toggle("active",t==="MCHN");
+  document.getElementById("typeCMD").classList.toggle("active",t==="CMD");
+  buildForm(); compute();
+}
+document.getElementById("typeMCHN").addEventListener("click",()=>setType("MCHN"));
+document.getElementById("typeCMD").addEventListener("click",()=>setType("CMD"));
+
+/* ============================================================= *
+ *  BUTTONS: reset, print, copy, save, xlsx
+ * ============================================================= */
+const nameEl=()=>document.getElementById("scenarioName");
+const savedNote=document.getElementById("savedNote");
+
+document.getElementById("resetBtn").addEventListener("click",()=>{
+  V=Object.assign({},DEFAULTS);
+  buildForm(); compute();
+});
+document.getElementById("printBtn").addEventListener("click",()=>window.print());
+
+document.getElementById("copyBtn").addEventListener("click",async ()=>{
+  const {m,A}=window.__CBIO_LAST;
+  const btn=document.getElementById("copyBtn");
+  const rows=summaryText(m,A);
+  try{ await navigator.clipboard.writeText(rows); btn.textContent="Copied"; }
+  catch(e){ const ta=document.createElement("textarea"); ta.value=rows; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy");btn.textContent="Copied";}catch(e2){btn.textContent="Copy failed";} ta.remove(); }
+  setTimeout(()=>btn.textContent="Copy summary",2000);
+});
+
+function summaryText(m,A){
+  const L=[]; const orgLabel=IDENT.org||"Implementing org";
+  L.push("CBIO+ PROJECT BUDGET — DRAFT");
+  L.push((TYPE==="MCHN"?"Maternal & Child Health / Nutrition":"Cardiometabolic (Hypertension)")+" project");
+  if(IDENT.area||IDENT.country) L.push("Area: "+(IDENT.area||"")+(IDENT.country?", "+IDENT.country:""));
+  if(IDENT.org) L.push("Organization: "+IDENT.org);
+  if(nameEl().value.trim()) L.push("Scenario: "+nameEl().value.trim());
+  L.push("");
+  L.push("PROGRAM SHAPE");
+  Object.keys(m.shape).forEach(k=>L.push("  "+k+": "+m.shape[k]));
+  L.push("");
+  L.push("BUDGET BY CATEGORY");
+  Object.keys(A.cats).forEach(c=>L.push("  "+c+": "+money(A.cats[c])));
+  L.push("  Contingency ("+A.contPct+"%): "+money(A.cont));
+  L.push("  TOTAL CASH: "+money(A.cash));
+  L.push("");
+  L.push("BY FUNDER");
+  L.push("  "+orgLabel+": "+money(A.org));
+  L.push("  IGHA: "+money(A.igha));
+  if(A.inkind) L.push("  In-kind (memo, not cash): "+money(A.inkind));
+  L.push("");
+  L.push("BY YEAR");
+  A.yearRows.forEach(r=>L.push("  Year "+r.y+": "+money(r.total)));
+  L.push("");
+  L.push("UNIT COSTS");
+  const annual=A.cash/A.years;
+  L.push("  Cost per person per year: "+money2(m.pop?annual/m.pop:0));
+  L.push("  Cost per person, whole project: "+money2(m.pop?A.cash/m.pop:0));
+  L.push("  Cost per direct beneficiary per year: "+money(m.directBen?annual/m.directBen:0));
+  if(IDENT.fx>0&&IDENT.cur) L.push("  Total in local currency: "+numf(A.cash*IDENT.fx)+" "+IDENT.cur);
+  if(TYPE==="MCHN" && m.impact && (m.impact.u5Entered||m.impact.mmrEntered)){
+    const im=m.impact;
+    L.push("");
+    L.push("ESTIMATED IMPACT (planning-level)");
+    if(im.u5Entered) L.push("  Under-5 deaths averted (project): "+numf(im.u5Tot,1));
+    if(im.mmrEntered) L.push("  Maternal deaths averted (project): "+(im.cbcOn?numf(im.matTot,1):"needs Casas Maternas"));
+    L.push("  Total lives saved: "+numf(im.livesTot,1));
+    L.push("  DALYs averted: "+numf(im.dalys,0));
+    if(im.livesTot>0){ L.push("  Cost per life saved: "+money(A.cash/im.livesTot)); L.push("  Cost per DALY averted: "+money(A.cash/im.dalys)); }
+  } else if(TYPE==="CMD" && m.impact && m.impact.bpOn){
+    const im=m.impact;
+    L.push("");
+    L.push("ESTIMATED IMPACT (planning-level)");
+    L.push("  Adults 35+ screened: "+numf(im.screened));
+    L.push("  Hypertensives found: "+numf(im.elevated));
+    L.push("  Newly diagnosed (were unaware): "+numf(im.newlyIdentified));
+    L.push("  Started & retained on treatment: "+numf(im.started));
+    L.push("  Reaching BP control (<140/90): "+numf(im.controlled));
+    if(im.cvOn){ L.push("  Cardiovascular events averted (illustrative): "+numf(im.cvEvents,1)); L.push("  DALYs averted: "+numf(im.dalys,0)); }
+    if(im.controlled>0) L.push("  Cost per person brought to control: "+money(A.cash/im.controlled));
+  }
+  L.push("");
+  L.push("Planning-level draft from the CBIO+ Project Budget Calculator. Verify local wages, ratios, and prices before submitting.");
+  return L.join("\n");
+}
+
+/* ---------- save re-openable HTML ---------- */
+document.getElementById("saveBtn").addEventListener("click",()=>{
+  const btn=document.getElementById("saveBtn");
+  const name=(nameEl().value||"").trim();
+  try{
+    closePops();
+    const doc=new DOMParser().parseFromString("<!DOCTYPE html>"+document.documentElement.outerHTML,"text/html");
+    doc.getElementById("inputs").innerHTML="";
+    ["shape","cats","funders","years","units","inkindNote"].forEach(id=>{ const el=doc.getElementById(id); if(el) el.innerHTML=""; });
+    const note=doc.getElementById("savedNote"); if(note){ note.className="savednote"; note.textContent=""; }
+    const stale=doc.getElementById("savedState"); if(stale) stale.remove();
+    const s=doc.createElement("script"); s.id="savedState";
+    s.textContent="window.__CBIO_SAVED="+JSON.stringify({type:TYPE, values:V, ident:IDENT, name:name, savedOn:new Date().toISOString().slice(0,10)})+";";
+    doc.head.appendChild(s);
+    const slug=(name||IDENT.area||"scenario").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,50);
+    const blob=new Blob(["<!DOCTYPE html>\n"+doc.documentElement.outerHTML],{type:"text/html"});
+    downloadBlob(blob,"cbio-calculator-"+(slug||"scenario")+".html");
+    savedNote.textContent="Saved a re-openable copy. It opens in any browser with these figures already set, and can be emailed on.";
+    savedNote.classList.add("show");
+    btn.textContent="Saved"; setTimeout(()=>btn.textContent="Save this page",2000);
+  }catch(e){
+    savedNote.textContent="Could not save in this browser. Use Print / PDF or Copy summary instead.";
+    savedNote.classList.add("show");
+  }
+});
+
+function downloadBlob(blob,fname){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=fname;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+
+/* ============================================================= *
+ *  XLSX EXPORT  (self-contained: store-zip + CRC32 + minimal styles)
+ * ============================================================= */
+const CRC=(()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; } return t; })();
+function crc32(bytes){ let c=0xFFFFFFFF; for(let i=0;i<bytes.length;i++) c=CRC[(c^bytes[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function utf8(str){ return new TextEncoder().encode(str); }
+
+function zipStore(files){
+  // files: [{name, data(Uint8Array)}]
+  const chunks=[], central=[]; let offset=0;
+  const u16=n=>[n&0xFF,(n>>>8)&0xFF];
+  const u32=n=>[n&0xFF,(n>>>8)&0xFF,(n>>>16)&0xFF,(n>>>24)&0xFF];
+  files.forEach(f=>{
+    const name=utf8(f.name), data=f.data, crc=crc32(data);
+    const lh=[].concat(u32(0x04034b50),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0));
+    chunks.push(new Uint8Array(lh),name,data);
+    const cd=[].concat(u32(0x02014b50),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(name.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset));
+    central.push(new Uint8Array(cd),name);
+    offset += lh.length+name.length+data.length;
+  });
+  let cdSize=0; central.forEach(c=>cdSize+=c.length);
+  const cdOffset=offset;
+  const end=new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(cdSize),u32(cdOffset),u16(0)));
+  const all=chunks.concat(central,[end]);
+  let total=0; all.forEach(a=>total+=a.length);
+  const out=new Uint8Array(total); let p=0; all.forEach(a=>{ out.set(a,p); p+=a.length; });
+  return out;
+}
+
+function colLetter(n){ let s=""; n++; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-m-1)/26; } return s; }
+function xesc(s){ return (""+s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+/* cell: {v, t:'s'|'n', s:styleIndex} */
+function sheetXML(rows, colWidths){
+  let cols=""; if(colWidths){ cols='<cols>'+colWidths.map((w,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join("")+'</cols>'; }
+  let body="";
+  rows.forEach((row,ri)=>{
+    const r=ri+1; let cells="";
+    row.forEach((cell,ci)=>{
+      if(cell===null||cell===undefined) return;
+      const ref=colLetter(ci)+r; const st=cell.s?' s="'+cell.s+'"':'';
+      if(cell.t==="n"){ cells+='<c r="'+ref+'"'+st+'><v>'+(isFinite(cell.v)?cell.v:0)+'</v></c>'; }
+      else { cells+='<c r="'+ref+'"'+st+' t="inlineStr"><is><t xml:space="preserve">'+xesc(cell.v)+'</t></is></c>'; }
+    });
+    body+='<row r="'+r+'">'+cells+'</row>';
+  });
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+cols+'<sheetData>'+body+'</sheetData></worksheet>';
+}
+const STYLES_XML='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+'<numFmts count="3">'+
+'<numFmt numFmtId="164" formatCode="&quot;$&quot;#,##0"/>'+
+'<numFmt numFmtId="165" formatCode="0.0"/>'+
+'<numFmt numFmtId="166" formatCode="0%"/>'+
+'</numFmts>'+
+'<fonts count="4">'+
+'<font><sz val="11"/><name val="Calibri"/></font>'+
+'<font><b/><sz val="11"/><name val="Calibri"/></font>'+
+'<font><b/><sz val="14"/><name val="Calibri"/></font>'+
+'<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'+
+'</fonts>'+
+'<fills count="3">'+
+'<fill><patternFill patternType="none"/></fill>'+
+'<fill><patternFill patternType="gray125"/></fill>'+
+'<fill><patternFill patternType="solid"><fgColor rgb="FF1C6B4B"/><bgColor indexed="64"/></patternFill></fill>'+
+'</fills>'+
+'<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'+
+'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+'<cellXfs count="8">'+
+'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+                                  /*0 normal*/
+'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+                    /*1 bold*/
+'<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+          /*2 currency*/
+'<xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'+ /*3 bold currency*/
+'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+                    /*4 title*/
+'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'+      /*5 header white on green*/
+'<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+          /*6 number 1dp*/
+'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'+      /*7 bold on green*/
+'</cellXfs>'+
+'<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'+
+'</styleSheet>';
+
+function buildWorkbook(sheets){
+  // sheets: [{name, xml}]
+  const files=[];
+  const types='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+    '<Default Extension="xml" ContentType="application/xml"/>'+
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+
+    sheets.map((s,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join("")+
+    '</Types>';
+  const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  const wb='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
+    '<sheets>'+sheets.map((s,i)=>'<sheet name="'+xesc(s.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join("")+'</sheets></workbook>';
+  let wbRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+  sheets.forEach((s,i)=>wbRels+='<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>');
+  wbRels+='<Relationship Id="rId'+(sheets.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+  files.push({name:"[Content_Types].xml",data:utf8(types)});
+  files.push({name:"_rels/.rels",data:utf8(rels)});
+  files.push({name:"xl/workbook.xml",data:utf8(wb)});
+  files.push({name:"xl/_rels/workbook.xml.rels",data:utf8(wbRels)});
+  files.push({name:"xl/styles.xml",data:utf8(STYLES_XML)});
+  sheets.forEach((s,i)=>files.push({name:"xl/worksheets/sheet"+(i+1)+".xml",data:utf8(s.xml)}));
+  return new Blob([zipStore(files)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+
+function exportXLSX(){
+  const {m,A}=window.__CBIO_LAST;
+  const orgLabel=IDENT.org||"Implementing org";
+  const T=(v,s)=>({v:v,t:"s",s:s||0});
+  const N=(v,s)=>({v:v,t:"n",s:s||0});
+  const cur=v=>N(Math.round(v),2), curB=v=>N(Math.round(v),3);
+
+  // ---- Budget sheet ----
+  const rows=[];
+  rows.push([T("CBIO+ Project Budget — Draft",4)]);
+  rows.push([T((TYPE==="MCHN"?"Maternal & Child Health / Nutrition":"Cardiometabolic (Hypertension)")+" project",1)]);
+  rows.push([T("Organization",1),T(IDENT.org||"")]);
+  rows.push([T("Area / catchment",1),T(IDENT.area||"")]);
+  rows.push([T("Country",1),T(IDENT.country||"")]);
+  rows.push([T("Scenario",1),T(nameEl().value.trim())]);
+  rows.push([T("Duration",1),T((A.years.toFixed(A.years%1?1:0))+" years ("+m.durMonths+" months)")]);
+  if(IDENT.cur&&IDENT.fx>0) rows.push([T("Exchange rate",1),T(numf(IDENT.fx)+" "+IDENT.cur+" per US$")]);
+  rows.push([]);
+  // header row for line items (10 columns)
+  rows.push([T("Category",5),T("Line item",5),T("Unit",5),T("Unit cost",5),T("# units",5),T("Years",5),T("Phase",5),T(orgLabel,5),T("IGHA",5),T("Total (US$)",5)]);
+  // group by category
+  const cats={}; m.lines.forEach(l=>{ (cats[l.cat]=cats[l.cat]||[]).push(l); });
+  Object.keys(cats).forEach(cat=>{
+    let first=true;
+    cats[cat].forEach(l=>{
+      rows.push([ T(first?cat:""), T(l.label), T(l.unit), cur(l.cost), N(Math.round(l.qty*100)/100), N(l.lineYears,0),
+        T(l.oneTime?"One-time":"Recurring"),
+        l.funder==="org"?cur(l.total):N(0,2),
+        l.funder==="igha"?cur(l.total):N(0,2),
+        cur(l.total) ]);
+      first=false;
+    });
+  });
+  // subtotal, contingency, total  (columns: 0..9; org=7, igha=8, total=9)
+  const pad=(lbl,o,i,t)=>[T("",1),T(lbl,1),null,null,null,null,null, o===null?null:o, i===null?null:i, t];
+  rows.push([]);
+  rows.push(pad("Subtotal (before contingency)", cur(A.orgPre), cur(A.ighaPre), curB(A.cashPre)));
+  rows.push(pad("Contingency / FOREX ("+A.contPct+"%)", null, null, cur(A.cont)));
+  rows.push(pad("TOTAL CASH BUDGET", curB(A.org), curB(A.igha), curB(A.cash)));
+  if(A.inkind){
+    rows.push([]);
+    rows.push([T("In-kind (memo — not in cash total)",1)]);
+    m.inkind.forEach(l=>rows.push([T(""),T(l.label),T(l.unit),cur(l.cost),N(1,0),N(Math.round(A.years*10)/10,1),T("Memo"),null,null,cur(l.oneTime?l.total:l.total*A.years)]));
+  }
+  const budgetXML=sheetXML(rows,[16,44,15,11,9,7,11,15,12,14]);
+
+  // ---- Assumptions sheet ----
+  const arows=[];
+  arows.push([T("Assumptions & program shape",4)]);
+  arows.push([]);
+  arows.push([T("Program shape",5),T("Value",5)]);
+  Object.keys(m.shape).forEach(k=>arows.push([T(k),T(m.shape[k])]));
+  arows.push([]);
+  arows.push([T("Driver / unit cost",5),T("Value",5)]);
+  currentFields().forEach(f=>{
+    if(f.type==="toggle") arows.push([T(f.label),T(V[f.id]?"On":"Off")]);
+    else if(f.type==="money") arows.push([T(f.label),cur(V[f.id])]);
+    else if(f.type==="pct") arows.push([T(f.label),T(V[f.id]+"%")]);
+    else arows.push([T(f.label),N(V[f.id],0)]);
+  });
+  arows.push([]);
+  arows.push([T("By year",5)].concat(A.yearRows.map(r=>T("Year "+r.y,5))).concat([T("Total",5)]));
+  arows.push([T(orgLabel)].concat(A.yearRows.map(r=>cur(r.org))).concat([cur(A.org)]));
+  arows.push([T("IGHA")].concat(A.yearRows.map(r=>cur(r.igha))).concat([cur(A.igha)]));
+  arows.push([T("Total",1)].concat(A.yearRows.map(r=>cur(r.total))).concat([curB(A.cash)]));
+  arows.push([]);
+  arows.push([T("Unit costs",5),T("Value",5)]);
+  const annual=A.cash/A.years;
+  arows.push([T("Cost per person per year"),cur(m.pop?annual/m.pop:0)]);
+  arows.push([T("Cost per person, whole project"),cur(m.pop?A.cash/m.pop:0)]);
+  arows.push([T("Cost per direct beneficiary per year"),cur(m.directBen?annual/m.directBen:0)]);
+  if(IDENT.cur&&IDENT.fx>0) arows.push([T("Total in "+IDENT.cur),N(Math.round(A.cash*IDENT.fx),0)]);
+  if(TYPE==="MCHN" && m.impact && (m.impact.u5Entered||m.impact.mmrEntered)){
+    const im=m.impact;
+    arows.push([]);
+    arows.push([T("Estimated impact (planning-level)",5),T("Value",5)]);
+    if(im.u5Entered) arows.push([T("Under-5 deaths averted, project"),N(Math.round(im.u5Tot*10)/10,1)]);
+    if(im.mmrEntered) arows.push([T("Maternal deaths averted, project"),im.cbcOn?N(Math.round(im.matTot*10)/10,1):T("needs Casas Maternas")]);
+    arows.push([T("Total lives saved"),N(Math.round(im.livesTot*10)/10,1)]);
+    arows.push([T("DALYs averted ("+im.dalyPer+" per death)"),N(Math.round(im.dalys),0)]);
+    if(im.livesTot>0){ arows.push([T("Cost per life saved"),cur(A.cash/im.livesTot)]); arows.push([T("Cost per DALY averted"),cur(A.cash/im.dalys)]); }
+  } else if(TYPE==="CMD" && m.impact && m.impact.bpOn){
+    const im=m.impact;
+    arows.push([]);
+    arows.push([T("Estimated impact (planning-level)",5),T("Value",5)]);
+    arows.push([T("Adults 35+ screened"),N(Math.round(im.screened),0)]);
+    arows.push([T("Hypertensives found"),N(Math.round(im.elevated),0)]);
+    arows.push([T("Newly diagnosed (were unaware)"),N(Math.round(im.newlyIdentified),0)]);
+    arows.push([T("Started & retained on treatment"),N(Math.round(im.started),0)]);
+    arows.push([T("Reaching BP control (<140/90)"),N(Math.round(im.controlled),0)]);
+    if(im.cvOn){ arows.push([T("Cardiovascular events averted (illustrative)"),N(Math.round(im.cvEvents*10)/10,1)]); arows.push([T("DALYs averted ("+im.dalyPerCV+" per event)"),N(Math.round(im.dalys),0)]); }
+    if(im.controlled>0) arows.push([T("Cost per person brought to control"),cur(A.cash/im.controlled)]);
+  }
+  arows.push([]);
+  arows.push([T("Planning-level draft from the CBIO+ Project Budget Calculator. Verify local wages, ratios, and prices before submitting.")]);
+  const assumeXML=sheetXML(arows,[40,16,12,12,12,12]);
+
+  const blob=buildWorkbook([{name:"Budget",xml:budgetXML},{name:"Assumptions",xml:assumeXML}]);
+  const slug=((nameEl().value||IDENT.area||"cbio")+"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,50);
+  downloadBlob(blob,"cbio-budget-"+(slug||"draft")+".xlsx");
+  const btn=document.getElementById("xlsxBtn"); btn.textContent="Downloaded"; setTimeout(()=>btn.textContent="Download Excel budget",2000);
+}
+document.getElementById("xlsxBtn").addEventListener("click",()=>{ try{ exportXLSX(); }catch(e){ savedNote.textContent="Excel export failed in this browser: "+e.message; savedNote.classList.add("show"); } });
+
+/* ---------- boot ---------- */
+if(SAVED){
+  document.getElementById("typeMCHN").classList.toggle("active",TYPE==="MCHN");
+  document.getElementById("typeCMD").classList.toggle("active",TYPE==="CMD");
+  savedNote.textContent="Opened from a saved scenario"+(SAVED.name?": "+SAVED.name:"")+". Every figure is still adjustable; Reset returns to the built-in defaults.";
+  savedNote.classList.add("show");
+}
+wireIdentity();
+updateFunderLabels();
+buildForm();
+compute();
+</script>

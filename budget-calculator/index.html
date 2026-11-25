@@ -143,7 +143,7 @@
   <header class="masthead">
     <p class="eyebrow">Impact Global Health Alliance &middot; Census-Based, Impact-Oriented + Care Groups</p>
     <h1>CBIO+ Project Budget Calculator</h1>
-    <p class="lede">Set the assumptions for a service area and see what a CBIO+ project costs, how the cost splits across funders, and what it works out to per person reached. Choose the project type first, then set only that type's parameters. Every figure is editable &mdash; the defaults are planning-level estimates drawn from IGHA partner budgets, not quotes. Download a draft budget as an Excel workbook, or save a re-openable copy of this page.</p>
+    <p class="lede">Set the assumptions for a service area and see what a CBIO+ project costs, how the cost splits across funders, and what it works out to per person reached. Choose the project type first, then set only that type's parameters. Every figure is editable &mdash; the defaults are planning-level estimates drawn from IGHA partner budgets, not quotes. When the figures are set, use &ldquo;Download Excel budget&rdquo; for a workbook with the main parameters at the top and the budget by cost category below, or save a re-openable copy of this page.</p>
 
     <div class="identity" id="identity">
       <div class="idfield"><label for="id_org">Organization name</label><input type="text" id="id_org" placeholder="your organization" maxlength="80"></div>
@@ -200,7 +200,7 @@
   <footer>
     <h4>Where the default figures come from</h4>
     <ul>
-      <li><strong>Structure and ratios.</strong> Maternal-child defaults follow IGHA/KIKOP practice: 5 persons per household, ~100 households per community with one paid/stipended CHW/CHV each, Care Group Volunteers (CGVs, volunteer mother-to-mother educators) covering 8&ndash;12 enrolled women, ~10 CGVs per Care Group, and 1&ndash;2 Care Groups per paid promoter. CHWs/CHVs make eleven scheduled 60-minute home visits per mother from the second trimester to the child's second birthday. Cardiometabolic defaults follow an urban NGO&ndash;IGHA hypertension demonstration: 3.6 urban persons per household, 15 households per Care Group Volunteer, and seven CGVs per Promoter (one Care Group).</li>
+      <li><strong>Structure and ratios.</strong> Maternal-child defaults follow IGHA/KIKOP practice: 5 persons per household, ~100 households per community with one paid/stipended CHW/CHV each, Care Group Volunteers (CGVs, volunteer mother-to-mother educators) covering 8&ndash;12 enrolled women, ~10 CGVs per Care Group, and 1&ndash;2 Care Groups per paid promoter. CHWs/CHVs make eleven scheduled 60-minute home visits per mother from the second trimester to the child's second birthday. Cardiometabolic defaults follow an urban NGO&ndash;IGHA hypertension demonstration: 3.6 urban persons per household, 15 households per Leader Neighbor, and seven Leader Neighbors per Leader Neighbor Trainer (one Care Group).</li>
       <li><strong>Unit costs.</strong> Drawn from four IGHA partner budgets for 2025&ndash;2026, past project proposals and an earlier IGHA CBIO+ budgeting tool. Default salaries and stipends are fully loaded where the source budget loaded them.</li>
       <li><strong>Setup vs. recurring.</strong> One-time costs (census, initial training, tablets, equipment, and any Community Birthing Center / Casa Materna construction) are placed in the first year; recurring costs (stipends, supplies, refreshers, monitoring) repeat each year and are pro-rated in the first year by the setup fraction you set.</li>
       <li><strong>In-kind.</strong> Government or partner salaries, clinical care, medicines, and platform licensing that a project uses without paying cash are shown as a memo and are not added into the cash total.</li>
@@ -265,8 +265,8 @@ const MCHN_FIELDS = [
       info:"Barrier Analysis and a Positive Deviance Inquiry at baseline identify why hard-to-change behaviours resist change and which behaviours drive impact more, so Care Group lessons can be tailored."},
     {id:"m_meaningful", label:"Tablets & Meaningful app (digital data / job aid)", type:"toggle", val:1,
       info:"IGHA's Meaningful platform runs the census, home-visit, and Care Group records and gives volunteers a tablet-based counselling job aid."},
-    {id:"m_cgvTablets", label:"— give CGVs tablets & Meaningful licences too", type:"toggle", val:0, dep:"m_meaningful",
-      info:"Off by default: only CHWs/CHVs and promoters get tablets and Meaningful app licences. Turn on for projects that also equip Care Group Volunteers digitally (as in Kenya). CGVs receive a materials pouch and ID either way; this adds a tablet and an app licence per CGV, which roughly triples the tablet count."},
+    {id:"m_cgvTablets", label:"— give CGVs tablets too", type:"toggle", val:0, dep:"m_meaningful",
+      info:"Off by default: only CHWs/CHVs and promoters get tablets. Turn on for projects that also equip Care Group Volunteers digitally (as in Kenya). CGVs receive a materials pouch and ID either way; this adds a tablet per CGV, which roughly triples the tablet count. App licences are set separately, as a number of users."},
     {id:"m_kpc", label:"KPC household surveys (baseline & endline)", type:"toggle", val:1,
       info:"Knowledge, Practice and Coverage surveys measure behaviour change. A baseline in Year 1 and an endline in the final year."},
     {id:"m_dissem", label:"Dissemination / scale-up activities", type:"toggle", val:1, help:"Documentation, inter-county workshops, study visits, national forums."}
@@ -299,6 +299,8 @@ const MCHN_FIELDS = [
     {id:"m_tablet", label:"Tablet (CHV / promoter)", type:"money", val:120, min:0, max:600, step:10, dep:"m_meaningful"},
     {id:"m_cgvTablet", label:"CGV pouch for flipchart & materials + ID", type:"money", val:15, min:0, max:200, step:5, dep:"m_careGroups"},
     {id:"m_meaningfulUser", label:"Meaningful app licence, per user per year", type:"money", val:180, min:0, max:600, step:10, dep:"m_meaningful"},
+    {id:"m_meaningfulUsers", label:"Meaningful app licences, number of users", type:"int", val:0, min:0, max:3000, step:1, dep:"m_meaningful",
+      info:"Starts at zero. The licence row stays in the budget and costs nothing until a number of users is entered here."},
     {id:"m_anthroKit", label:"Anthropometry kit (scale, height board, MUAC)", type:"money", val:130, min:0, max:400, step:10},
     {id:"m_chvKit", label:"CHV / promoter field kit (bag, badge, shirts, boots)", type:"money", val:50, min:0, max:300, step:5},
     {id:"m_dayLabor", label:"Day labour (census / mapping), per person-day", type:"money", val:10, min:0, max:60, step:1},
@@ -344,14 +346,14 @@ const CMD_FIELDS = [
   {sec:"Reach and structure", note:"Population and the Care Group cascade that sizes the project.", items:[
     {id:"c_pop", label:"Catchment population", type:"int", val:3400, min:500, max:100000, step:100},
     {id:"c_perHH", label:"Persons per household", type:"num", val:3.6, min:2, max:8, step:.1, help:"Urban Ghana census average is about 3.6."},
-    {id:"c_hhPerLM", label:"Households per Care Group Volunteer (CGV)", type:"int", val:15, min:5, max:40, step:1,
-      info:"Care Group Volunteers (CGVs) each cover a cluster of neighbouring households: home visits, tablet counselling, blood-pressure measurement, and referral. Fifteen suits dense urban settlement."},
-    {id:"c_lmPerLMT", label:"CGVs per Promoter (= Care Group size)", type:"int", val:7, min:4, max:14, step:1,
-      info:"Each Promoter leads one Care Group of about seven CGVs on a two-week rhythm, and receives a stipend, health-insurance cover, and a work-support kit."},
+    {id:"c_hhPerLM", label:"Households per Leader Neighbor (LN)", type:"int", val:15, min:5, max:40, step:1,
+      info:"Leader Neighbors (LNs) each cover a cluster of neighbouring households: home visits, tablet counselling, blood-pressure measurement, and referral. Fifteen suits dense urban settlement."},
+    {id:"c_lmPerLMT", label:"Leader Neighbors per Leader Neighbor Trainer (= Care Group size)", type:"int", val:7, min:4, max:14, step:1,
+      info:"Each Leader Neighbor Trainer (LNT) leads one Care Group of about seven Leader Neighbors, meeting every two weeks, and receives a stipend, health-insurance cover, and a work-support kit."},
     {id:"c_pct35", label:"Adults aged 35+ (screening denominator)", type:"pct", val:30, min:10, max:60, step:1,
       info:"Screening and treatment concentrate on adults 35 and older, where cardiovascular risk and yield are highest. About 30% of an urban population."},
-    {id:"c_promoters", label:"Supervising nurses (in-kind)", type:"int", val:2, min:0, max:10, step:1,
-      info:"Government or NGO nurses who train and supervise the Promoters and oversee confirmatory measurement. Their salaries are contributed in-kind."},
+    {id:"c_promoters", label:"CHOs / Promoters (in-kind)", type:"int", val:2, min:0, max:10, step:1,
+      info:"Community Health Officers (CHOs) or nurses who act as Promoters: they train and supervise the Leader Neighbor Trainers and do the confirmatory measurements. Their salaries are contributed in-kind."},
     {id:"c_coordinators", label:"Field coordinators (paid, part-time)", type:"num", val:1, min:0, max:6, step:1},
     {id:"c_volPerMonitor", label:"Volunteers sharing one blood-pressure monitor", type:"int", val:4, min:1, max:12, step:1,
       info:"An automated cuff is shared, one per four volunteers, to keep equipment cost down."},
@@ -360,11 +362,11 @@ const CMD_FIELDS = [
 
   {sec:"Interventions", note:"Switch the components on or off.", items:[
     {id:"c_bpScreen", label:"Blood-pressure screening & referral", type:"toggle", val:1,
-      info:"CGVs measure blood pressure with a shared automated cuff and refer elevated readings to Promoters and facilities for confirmation and treatment."},
+      info:"Leader Neighbors measure blood pressure with a shared automated cuff and refer elevated readings to the CHO / Promoter and the facility for confirmation and treatment."},
     {id:"c_adrs", label:"Verbal diabetes-risk screening (ADRS)", type:"toggle", val:1,
       info:"The African Diabetes Risk Score is administered verbally with waist and weight measures; high scorers are referred for a blood-glucose test. Adds waist tapes and scales. Blood-glucose testing itself is a separate toggle under supplies."},
-    {id:"c_tabletCounsel", label:"Tablet-based branching counselling (Meaningful app)", type:"toggle", val:1,
-      info:"Each CGV and Promoter carries a tablet running IGHA's Meaningful app and a branching counselling application, so each household gets tailored advice and screening data is captured as a by-product. Tablets and annual app licences are budgeted as cash below."},
+    {id:"c_tabletCounsel", label:"Tablet-based counselling and data capture", type:"toggle", val:1,
+      info:"Each Leader Neighbor and Leader Neighbor Trainer carries a tablet with a counselling and register app, so each household gets tailored advice and screening data is captured as a by-product. Tablets are budgeted below. The Meaningful app licence row is kept in the budget with zero users; enter a number of users only if the project will pay for licences."},
     {id:"c_norms", label:"Community norm-building activities", type:"toggle", val:1, help:"Group meetings and community actions on diet, salt, and activity — refreshments, recognition events, sensitization."},
     {id:"c_kpc", label:"KPC household survey (baseline & endline)", type:"toggle", val:1, help:"Measures behaviour change and blood-pressure control."},
     {id:"c_kenyaTrain", label:"Onboarding training at a Center of Excellence", type:"toggle", val:1,
@@ -392,25 +394,27 @@ const CMD_FIELDS = [
       info:"A DALY (disability-adjusted life year) is one lost year of healthy life. A major cardiovascular event averts roughly 5–15 DALYs depending on fatality and disability; 10 is a mid planning value."}
   ]},
 
-  {sec:"Stipends, staff & recognition", note:"Care Group Volunteers get support, not a stipend; Promoters get a small stipend.", collapsed:true, items:[
-    {id:"c_lmtStipend", label:"Promoter stipend, per month", type:"money", val:20, min:0, max:200, step:5},
-    {id:"c_stipendMonths", label:"Months the Promoter stipend runs", type:"int", val:13, min:1, max:48, step:1},
-    {id:"c_nhis", label:"Health-insurance premium per Promoter (self + family)", type:"money", val:15, min:0, max:200, step:5,
-      info:"Enrolment in a national or community health-insurance scheme for the Promoter and family, as a non-cash-salary benefit."},
+  {sec:"Stipends, staff & recognition", note:"Leader Neighbors get support in kind; Leader Neighbor Trainers get a small stipend.", collapsed:true, items:[
+    {id:"c_lmtStipend", label:"Leader Neighbor Trainer stipend, per month", type:"money", val:20, min:0, max:200, step:5},
+    {id:"c_stipendMonths", label:"Months the Leader Neighbor Trainer stipend runs", type:"int", val:13, min:1, max:48, step:1},
+    {id:"c_nhis", label:"Health-insurance premium per Leader Neighbor Trainer (self + family)", type:"money", val:15, min:0, max:200, step:5,
+      info:"Enrolment in a national or community health-insurance scheme for the Leader Neighbor Trainer and family, as a non-cash-salary benefit."},
     {id:"c_coordSal", label:"Field coordinator, per month", type:"money", val:350, min:0, max:4000, step:25, dep:"c_coordinators"},
-    {id:"c_choSupport", label:"Supervising-nurse field support, per nurse-month", type:"money", val:30, min:0, max:400, step:5},
-    {id:"c_choMonths", label:"Months of supervising-nurse field support", type:"int", val:13, min:1, max:48, step:1},
+    {id:"c_choSupport", label:"CHO / Promoter field support, per CHO-month", type:"money", val:30, min:0, max:400, step:5},
+    {id:"c_choMonths", label:"Months of CHO / Promoter field support", type:"int", val:13, min:1, max:48, step:1},
     {id:"c_recognition", label:"Recognition & awards (lump sum)", type:"money", val:600, min:0, max:6000, step:50}
   ]},
 
   {sec:"Volunteer kits, screening equipment & supplies", note:"Per-volunteer support, shared measurement gear, and consumable supplies.", collapsed:true, items:[
-    {id:"c_tablet", label:"Tablet (per Care Group Volunteer / Promoter)", type:"money", val:100, min:0, max:600, step:10, dep:"c_tabletCounsel"},
+    {id:"c_tablet", label:"Tablet (per Leader Neighbor / Leader Neighbor Trainer)", type:"money", val:100, min:0, max:600, step:10, dep:"c_tabletCounsel"},
     {id:"c_ighaTablets", label:"— of which funded by IGHA (rest by the org)", type:"int", val:31, min:0, max:400, step:1, dep:"c_tabletCounsel"},
     {id:"c_meaningfulUser", label:"Meaningful app licence, per user per year", type:"money", val:180, min:0, max:600, step:10, dep:"c_tabletCounsel",
-      info:"Annual per-user licence for IGHA's Meaningful data platform, budgeted as cash for CGVs and Promoters carrying tablets. If your project has negotiated it as in-kind, set this to 0 and record the value in the memo field further down."},
-    {id:"c_lmtKit", label:"Promoter work-support kit (bicycle, boots, torch, bag, phone)", type:"money", val:173, min:0, max:600, step:10},
-    {id:"c_lmtID", label:"Promoter ID (T-shirt + badge)", type:"money", val:6, min:0, max:60, step:1},
-    {id:"c_lmKit", label:"Care Group Volunteer kit (yearly gift, badge, T-shirt)", type:"money", val:16, min:0, max:120, step:2},
+      info:"Annual per-user licence price for IGHA's Meaningful data platform. The row stays in the budget, and costs nothing until a number of users is entered in the next field."},
+    {id:"c_meaningfulUsers", label:"Meaningful app licences, number of users", type:"int", val:0, min:0, max:500, step:1, dep:"c_tabletCounsel",
+      info:"Starts at zero. Enter the number of users only if the project will pay for Meaningful licences."},
+    {id:"c_lmtKit", label:"Leader Neighbor Trainer work-support kit (bicycle, boots, torch, bag, phone)", type:"money", val:173, min:0, max:600, step:10},
+    {id:"c_lmtID", label:"Leader Neighbor Trainer ID (T-shirt + badge)", type:"money", val:6, min:0, max:60, step:1},
+    {id:"c_lmKit", label:"Leader Neighbor kit (yearly gift, badge, T-shirt)", type:"money", val:16, min:0, max:120, step:2},
     {id:"c_bpMonitor", label:"Blood-pressure monitor (shared)", type:"money", val:30, min:0, max:200, step:5, dep:"c_bpScreen"},
     {id:"c_largeCuff", label:"Large-adult cuffs (lump sum)", type:"money", val:80, min:0, max:600, step:10, dep:"c_bpScreen"},
     {id:"c_batteries", label:"Monitor batteries, per set", type:"money", val:4, min:0, max:40, step:1, dep:"c_bpScreen"},
@@ -432,7 +436,7 @@ const CMD_FIELDS = [
   {sec:"Training, census & community", note:"Set-up activities and recurring community costs.", collapsed:true, items:[
     {id:"c_centralTrain", label:"Central training, per person per day", type:"money", val:15, min:0, max:120, step:5},
     {id:"c_trainDays", label:"Central training, number of days", type:"int", val:5, min:0, max:15, step:1},
-    {id:"c_lmMaterials", label:"CGV in-village training materials, per CGV", type:"money", val:8, min:0, max:80, step:1},
+    {id:"c_lmMaterials", label:"Leader Neighbor in-village training materials, per Leader Neighbor", type:"money", val:8, min:0, max:80, step:1},
     {id:"c_trainSupplies", label:"Training supplies (lump sum)", type:"money", val:200, min:0, max:3000, step:50},
     {id:"c_refresherC", label:"Refresher trainings (lump sum)", type:"money", val:250, min:0, max:4000, step:50},
     {id:"c_dayLaborC", label:"Census enumeration, per person-day (10 HH/day)", type:"money", val:10, min:0, max:60, step:1},
@@ -454,9 +458,9 @@ const CMD_FIELDS = [
     {id:"c_travelInc", label:"Travel incidentals (visas, transfers)", type:"money", val:200, min:0, max:3000, step:50, dep:"c_kenyaTrain"},
     {id:"c_contPctC", label:"Contingency / foreign-exchange reserve", type:"pct", val:8, min:0, max:20, step:1, help:"Applied to cash lines (org + IGHA)."},
     {id:"c_meaningfulMemo", label:"IGHA technical oversight, per year (memo)", type:"money", val:0, min:0, max:100000, step:500,
-      info:"Senior technical oversight IGHA provides without cash charge. Enter an estimated annual value to show as a memo; it is not added to the cash total. The Meaningful app licence itself is now budgeted as cash above."},
+      info:"Senior technical oversight IGHA provides without cash charge. Enter an estimated annual value to show as a memo; it is not added to the cash total. The Meaningful app licence row above starts at zero users."},
     {id:"c_govInkindC", label:"Government / clinical in-kind, per year (memo)", type:"money", val:0, min:0, max:200000, step:1000,
-      info:"Clinical care, confirmatory testing, medicines through government health insurance, and supervising-nurse salaries the project uses without paying cash. Memo only."}
+      info:"Clinical care, confirmatory testing, medicines through government health insurance, and CHO / Promoter salaries the project uses without paying cash. Memo only."}
   ]}
 ];
 
@@ -494,6 +498,8 @@ const line = (label,value,cls) => '<div class="line '+(cls||"")+'"><span>'+label
  *  funder in {"org","igha"}; in-kind lines live in inkind[].
  * ============================================================= */
 
+const CE = x => "ROUNDUP(MAX(0,"+x+"-0.000000001),0)";   // same rounding-up rule as ceil() above, as a spreadsheet formula
+
 function modelMCHN(){
   const S={};
   const pop=V.m_pop, perHH=V.m_perHH||1;
@@ -528,62 +534,96 @@ function modelMCHN(){
   S["Direct beneficiaries (women + under-2s)"]=numf(directBen);
   if(facilities){ S["Birthing centers"]=numf(facilities); S["Extra nurses"]=numf(nurses); }
 
+  // drivers: the main parameters shown at the top of the Excel budget. f = spreadsheet formula ({key} = another driver).
+  const D=[]; const drv=(k,label,v,fmt,note,f)=>D.push({k,label,v,fmt:fmt||"int",note:note||"",f:f||""});
+  drv("pop","Population (catchment)",pop,"int","people");
+  drv("perHH","Persons per household",perHH,"num","census average");
+  drv("HH","Households",HH,"int","calculated","{pop}/{perHH}");
+  drv("hhPerComm","Households per community (average)",V.m_hhPerComm,"int");
+  drv("comm","Communities",communities,"int","calculated",CE("{HH}/{hhPerComm}"));
+  if(V.m_homeVisits){
+    drv("hhPerCHW","Households per paid/stipended CHW/CHV",V.m_hhPerCHV,"int");
+    drv("CHW","Paid/stipended CHWs/CHVs",CHV,"int","calculated",CE("{HH}/{hhPerCHW}"));
+  } else drv("CHW","Paid/stipended CHWs/CHVs",CHV,"int","calculated: one per community",CE("{HH}/{hhPerComm}"));
+  drv("commPerCoord","Communities per coordinator / field officer",V.m_commPerCoord,"num");
+  drv("coord","Coordinators / field officers",coordinators,"int","calculated","MAX(1,"+CE("{comm}/{commPerCoord}")+")");
+  drv("cbr","Crude birth rate (births per 1,000 people per year)",V.m_cbr,"num");
+  drv("births","Annual births",births,"int","calculated","{pop}*{cbr}/1000");
+  drv("women","Pregnant women and mothers of children under 2",womenEnrolled,"int","calculated from annual births","{births}*0.76+{births}*1.95/1.08");
+  if(V.m_careGroups){
+    drv("womenPerCGV","Enrolled women per Care Group Volunteer (CGV)",V.m_womenPerCGV,"int");
+    drv("CGV","Care Group Volunteers (CGVs)",CGV,"int","calculated",CE("{women}/{womenPerCGV}"));
+    drv("cgvPerGroup","CGVs per Care Group",V.m_cgvPerGroup,"int");
+    drv("groups","Care Groups",careGroups,"int","calculated",CE("{CGV}/{cgvPerGroup}"));
+    drv("groupsPerProm","Care Groups per paid promoter",V.m_groupsPerProm,"num");
+    drv("prom","Care Group promoters",promoters,"int","calculated",CE("{groups}/{groupsPerProm}"));
+  }
+  if(facilities){
+    drv("fac","Community Birthing Centers to upgrade",facilities,"int");
+    drv("nursesPerFac","Nurses per birthing center",V.m_nursesPerFac,"int");
+  }
+  drv("years","Project duration (years)",years,"int","recurring costs repeat each year");
+  if(V.m_tba) drv("facRate","Facility-delivery rate (for TBA incentive)",V.m_facilityDeliv/100,"pct");
+  if(V.m_meaningful) drv("mUsers","Meaningful app licences (number of users)",V.m_meaningfulUsers,"int","starts at zero; enter the number of users if licences will be paid");
+  drv("contRate","Contingency / FOREX reserve rate",V.m_contPct/100,"pct","applied to all cash lines");
+  const qP = V.m_careGroups ? "+{prom}" : "", qG = V.m_careGroups ? "+{CGV}" : "";
+
   const L=[], IK=[];
   // recurring lines run every year: lineYears = project years; one-time lines = 1 year.
-  const push=(cat,label,unit,cost,qty,oneTime,funder)=>{
-    if(qty>0&&cost>0){ const ly = oneTime?1:years; L.push({cat,label,unit,cost,qty,lineYears:ly,total:cost*qty*ly,oneTime:!!oneTime,funder:funder||"org"}); }
+  // qf = spreadsheet formula for the number of units; keep = show the row even when it is zero.
+  const push=(cat,label,unit,cost,qty,oneTime,funder,qf,keep)=>{
+    if((qty>0&&cost>0)||keep){ const ly = oneTime?1:years; L.push({cat,label,unit,cost,qty,lineYears:ly,total:cost*qty*ly,oneTime:!!oneTime,funder:funder||"org",qf:qf||""}); }
   };
 
   // Personnel & stipends (recurring / annual)
-  push("Personnel & stipends","CHW/CHV stipends","CHV-year",V.m_chvStipend*12,CHV,false,"org");
-  if(V.m_careGroups) push("Personnel & stipends","Care Group promoter stipends","promoter-year",V.m_promStipend*12,promoters,false,"org");
-  push("Personnel & stipends","Coordinators / field officers","FTE-year",V.m_fieldSal,coordinators,false,"org");
+  push("Personnel & stipends","CHW/CHV stipends","CHV-year",V.m_chvStipend*12,CHV,false,"org","{CHW}");
+  if(V.m_careGroups) push("Personnel & stipends","Care Group promoter stipends","promoter-year",V.m_promStipend*12,promoters,false,"org","{prom}");
+  push("Personnel & stipends","Coordinators / field officers","FTE-year",V.m_fieldSal,coordinators,false,"org","{coord}");
   push("Personnel & stipends","Project lead (part-charge)","year",V.m_projLead,1,false,"org");
-  if(facilities) push("Personnel & stipends","Birthing-center nurses (24/7 cover)","nurse-year",V.m_nurseSal,nurses,false,"org");
+  if(facilities) push("Personnel & stipends","Birthing-center nurses (24/7 cover)","nurse-year",V.m_nurseSal,nurses,false,"org","{fac}*{nursesPerFac}");
 
   // Census & set-up (one-time)
   if(V.m_vitalEvents){
-    push("Census & set-up","Census enumeration (extra CHV days, 10 HH/day)","person-day",V.m_dayLabor,ceil(HH/10),true,"org");
-    push("Census & set-up","Community mapping guides (30 HH/day)","person-day",V.m_dayLabor,ceil(HH/30),true,"org");
-    push("Census & set-up","Household numbering paint (1 can / 20 HH)","can",V.m_paintCan,ceil(HH/20),true,"org");
+    push("Census & set-up","Census enumeration (extra CHV days, 10 HH/day)","person-day",V.m_dayLabor,ceil(HH/10),true,"org",CE("{HH}/10"));
+    push("Census & set-up","Community mapping guides (30 HH/day)","person-day",V.m_dayLabor,ceil(HH/30),true,"org",CE("{HH}/30"));
+    push("Census & set-up","Household numbering paint (1 can / 20 HH)","can",V.m_paintCan,ceil(HH/20),true,"org",CE("{HH}/20"));
   }
-  push("Census & set-up","CHV / promoter orientation training","person",V.m_chvTrain,CHV+promoters,true,"org");
-  if(V.m_careGroups) push("Census & set-up","CGV orientation & selection","CGV",V.m_cgvTrain,CGV,true,"org");
-  push("Census & set-up","Community entry & sensitization","community",V.m_entry,communities,true,"org");
+  push("Census & set-up","CHV / promoter orientation training","person",V.m_chvTrain,CHV+promoters,true,"org","{CHW}"+qP);
+  if(V.m_careGroups) push("Census & set-up","CGV orientation & selection","CGV",V.m_cgvTrain,CGV,true,"org","{CGV}");
+  push("Census & set-up","Community entry & sensitization","community",V.m_entry,communities,true,"org","{comm}");
   if(V.m_ba) push("Census & set-up","Barrier Analysis + Positive Deviance Inquiry","study",V.m_baCost,1,true,"org");
 
   // Equipment (one-time)
   const cgvDigital = V.m_meaningful && V.m_cgvTablets && V.m_careGroups;
   if(V.m_meaningful){
-    push("Equipment","Tablets for CHWs & promoters","tablet",V.m_tablet,CHV+promoters,true,"org");
-    if(cgvDigital) push("Equipment","Tablets for Care Group Volunteers","tablet",V.m_tablet,CGV,true,"org");
+    push("Equipment","Tablets for CHWs & promoters","tablet",V.m_tablet,CHV+promoters,true,"org","{CHW}"+qP);
+    if(cgvDigital) push("Equipment","Tablets for Care Group Volunteers","tablet",V.m_tablet,CGV,true,"org","{CGV}");
   }
-  if(V.m_careGroups) push("Equipment","CGV pouch for flipchart & materials + ID","CGV",V.m_cgvTablet,CGV,true,"org");
-  push("Equipment","Anthropometry kits (scale, board, MUAC)","kit",V.m_anthroKit,CHV,true,"org");
-  push("Equipment","CHV / promoter field kits","kit",V.m_chvKit,CHV+promoters,true,"org");
+  if(V.m_careGroups) push("Equipment","CGV pouch for flipchart & materials + ID","CGV",V.m_cgvTablet,CGV,true,"org","{CGV}");
+  push("Equipment","Anthropometry kits (scale, board, MUAC)","kit",V.m_anthroKit,CHV,true,"org","{CHW}");
+  push("Equipment","CHV / promoter field kits","kit",V.m_chvKit,CHV+promoters,true,"org","{CHW}"+qP);
 
   // Birthing center capital (one-time) + supplies (recurring)
   if(facilities){
-    push("Birthing centers","Solar PV array with battery backup","facility",V.m_solar,facilities,true,"org");
-    push("Birthing centers","Water borehole drilling & piping","facility",V.m_borehole,facilities,true,"org");
-    push("Birthing centers","Birthing space & renovation","facility",V.m_birthSpace,facilities,true,"org");
-    push("Birthing centers","Delivery & newborn clinical equipment","facility",V.m_clinEquip,facilities,true,"org");
-    push("Birthing centers","Non-pharmaceutical supplies","facility-year",V.m_cbcSupplies,facilities,false,"org");
+    push("Birthing centers","Solar PV array with battery backup","facility",V.m_solar,facilities,true,"org","{fac}");
+    push("Birthing centers","Water borehole drilling & piping","facility",V.m_borehole,facilities,true,"org","{fac}");
+    push("Birthing centers","Birthing space & renovation","facility",V.m_birthSpace,facilities,true,"org","{fac}");
+    push("Birthing centers","Delivery & newborn clinical equipment","facility",V.m_clinEquip,facilities,true,"org","{fac}");
+    push("Birthing centers","Non-pharmaceutical supplies","facility-year",V.m_cbcSupplies,facilities,false,"org","{fac}");
   }
 
   // Community & recurring
-  if(V.m_vhc) push("Community & recurring","Village Health Committee meetings","community-year",V.m_vhcCost,communities,false,"org");
+  if(V.m_vhc) push("Community & recurring","Village Health Committee meetings","community-year",V.m_vhcCost,communities,false,"org","{comm}");
   const activeVols=CHV+promoters+(V.m_careGroups?CGV:0);
-  push("Community & recurring","Volunteer recognition & appreciation","volunteer-year",V.m_recognition,activeVols,false,"org");
-  push("Community & recurring","Volunteer refresher & supervision","volunteer-year",V.m_refresher,activeVols,false,"org");
+  push("Community & recurring","Volunteer recognition & appreciation","volunteer-year",V.m_recognition,activeVols,false,"org","{CHW}"+qP+qG);
+  push("Community & recurring","Volunteer refresher & supervision","volunteer-year",V.m_refresher,activeVols,false,"org","{CHW}"+qP+qG);
   if(V.m_meaningful){
-    const meaningfulUsers = CHV+promoters + (cgvDigital?CGV:0);
-    push("Community & recurring","Meaningful app licences","user-year",V.m_meaningfulUser,meaningfulUsers,false,"org");
+    push("Community & recurring","Meaningful app licences","user-year",V.m_meaningfulUser,V.m_meaningfulUsers,false,"org","{mUsers}",true);
     push("Community & recurring","SMS credits & staff airtime","year",V.m_sms,1,false,"org");
   }
   push("Community & recurring","Staff transport between communities","year",V.m_transport,1,false,"org");
   push("Community & recurring","Office operations (part-charge)","year",V.m_office,1,false,"org");
-  if(V.m_tba) push("Community & recurring","TBA facility-delivery incentives","delivery-year",V.m_tbaInc,facilityDeliveries,false,"org");
+  if(V.m_tba) push("Community & recurring","TBA facility-delivery incentives","delivery-year",V.m_tbaInc,facilityDeliveries,false,"org","{births}*{facRate}");
 
   // M&E
   if(V.m_kpc){
@@ -611,7 +651,7 @@ function modelMCHN(){
   const impact = {u5PerYr, u5Tot, matPerYr, matTot, livesTot, dalys,
     mmrEntered:V.m_mmr>0, u5Entered:V.m_u5mr>0, cbcOn:!!V.m_cbc, dalyPer:V.m_dalyPerDeath};
 
-  return {shape:S, lines:L, inkind:IK, durMonths, contPct:V.m_contPct,
+  return {shape:S, lines:L, inkind:IK, drivers:D, durMonths, contPct:V.m_contPct,
           pop, directBen, HH, years:durMonths/12, impact, contBase:"cash"};
 }
 
@@ -619,10 +659,10 @@ function modelCMD(){
   const S={};
   const pop=V.c_pop, perHH=V.c_perHH||1;
   const HH=pop/perHH;
-  const LMs=ceil(HH/V.c_hhPerLM);
-  const LMTs=ceil(LMs/V.c_lmPerLMT);
+  const LMs=ceil(HH/V.c_hhPerLM);            // Leader Neighbors
+  const LMTs=ceil(LMs/V.c_lmPerLMT);         // Leader Neighbor Trainers (one Care Group each)
   const careGroups=LMTs;
-  const promoters=V.c_promoters;
+  const promoters=V.c_promoters;             // CHOs / Promoters (in-kind)
   const coordinators=V.c_coordinators;
   const adults35=pop*V.c_pct35/100;
   const volunteers=LMs+LMTs;
@@ -634,64 +674,95 @@ function modelCMD(){
 
   S["Catchment population"]=numf(pop);
   S["Households"]=numf(HH);
-  S["Care Group Volunteers"]=numf(LMs);
-  S["Promoters / Care Groups"]=numf(LMTs);
-  S["Supervising nurses (in-kind)"]=numf(promoters);
+  S["Leader Neighbors"]=numf(LMs);
+  S["Leader Neighbor Trainers / Care Groups"]=numf(LMTs);
+  S["CHOs / Promoters (in-kind)"]=numf(promoters);
   S["Field coordinators"]=numf(coordinators,0);
   S["Adults 35+ (screening target)"]=numf(adults35);
   if(totalTablets) S["Tablets"]=numf(totalTablets)+"  (IGHA "+numf(ighaTablets)+" / org "+numf(orgTablets)+")";
   if(monitors) S["BP monitors"]=numf(monitors);
 
+  // drivers: the main parameters shown at the top of the Excel budget. f = spreadsheet formula ({key} = another driver).
+  const D=[]; const drv=(k,label,v,fmt,note,f)=>D.push({k,label,v,fmt:fmt||"int",note:note||"",f:f||""});
+  drv("pop","Population (catchment)",pop,"int","people");
+  drv("perHH","Persons per household",perHH,"num","census average");
+  drv("HH","Households",HH,"int","calculated","{pop}/{perHH}");
+  drv("hhPerLN","Households per Leader Neighbor",V.c_hhPerLM,"int");
+  drv("LN","Leader Neighbors (LNs)",LMs,"int","calculated: frontline volunteers",CE("{HH}/{hhPerLN}"));
+  drv("lnPerLNT","Leader Neighbors per Leader Neighbor Trainer (1 Care Group per LNT)",V.c_lmPerLMT,"int","Care Group size");
+  drv("LNT","Leader Neighbor Trainers (LNTs)",LMTs,"int","calculated",CE("{LN}/{lnPerLNT}"));
+  drv("CHO","CHOs / Promoters (in-kind)",promoters,"int");
+  drv("coord","Field coordinators",coordinators,"num");
+  if(V.c_tabletCounsel){
+    drv("spare","Spare tablets",V.c_spareTablets,"int");
+    drv("tablets","Total tablets",totalTablets,"int","calculated","{LN}+{LNT}+{spare}");
+    drv("ighaTab","Tablets funded by IGHA (rest by the organization)",V.c_ighaTablets,"int");
+  }
+  drv("pct35","% adults aged 35+",V.c_pct35/100,"pct","screening target");
+  drv("adults","Adults aged 35+",adults35,"int","calculated","{pop}*{pct35}");
+  if(V.c_bpScreen){
+    drv("volPerMon","Volunteers sharing one blood-pressure monitor",V.c_volPerMonitor,"int");
+    drv("monitors","Blood-pressure monitors",monitors,"int","calculated",CE("({LN}+{LNT})/{volPerMon}"));
+  }
+  drv("months","Project months (total)",durMonths,"int");
+  drv("stipMonths","Leader Neighbor Trainer stipend months",V.c_stipendMonths,"int");
+  drv("choMonths","CHO / Promoter field-support months",V.c_choMonths,"int");
+  if(V.c_adrs && V.c_diabetesLab) drv("gluShare","Share of adults 35+ given a blood-glucose test",V.c_gluTestShare/100,"pct");
+  if(V.c_tabletCounsel) drv("mUsers","Meaningful app licences (number of users)",V.c_meaningfulUsers,"int","starts at zero; enter the number of users if licences will be paid");
+  drv("contRate","Contingency / FOREX reserve rate",V.c_contPctC/100,"pct","applied to all cash lines");
+  const qStaff="({LNT}+{CHO}+"+CE("{coord}")+")";
+
   const L=[], IK=[];
   // CMD quantities already embed the project's months, so each line is a full-project total (lineYears=1).
-  const push=(cat,label,unit,cost,qty,oneTime,funder)=>{ if(qty>0&&cost>0) L.push({cat,label,unit,cost,qty,lineYears:1,total:cost*qty,oneTime:!!oneTime,funder:funder||"org"}); };
+  // qf = spreadsheet formula for the number of units; keep = show the row even when it is zero.
+  const push=(cat,label,unit,cost,qty,oneTime,funder,qf,keep)=>{ if((qty>0&&cost>0)||keep) L.push({cat,label,unit,cost,qty,lineYears:1,total:cost*qty,oneTime:!!oneTime,funder:funder||"org",qf:qf||""}); };
 
   // Stipends & staff (recurring)
-  push("Stipends & staff","Promoter stipend","promoter-month",V.c_lmtStipend,LMTs*V.c_stipendMonths,false,"org");
-  push("Stipends & staff","Promoter health-insurance cover (self + family)","promoter",V.c_nhis,LMTs,false,"org");
-  if(coordinators>0) push("Stipends & staff","Field coordinator (part-time)","coord-month",V.c_coordSal,coordinators*durMonths,false,"org");
-  push("Stipends & staff","Supervising-nurse field support","nurse-month",V.c_choSupport,promoters*V.c_choMonths,false,"org");
+  push("Stipends & staff","Leader Neighbor Trainer stipend","LNT-month",V.c_lmtStipend,LMTs*V.c_stipendMonths,false,"org","{LNT}*{stipMonths}");
+  push("Stipends & staff","Leader Neighbor Trainer health-insurance cover (self + family)","LNT",V.c_nhis,LMTs,false,"org","{LNT}");
+  if(coordinators>0) push("Stipends & staff","Field coordinator (part-time)","coord-month",V.c_coordSal,coordinators*durMonths,false,"org","{coord}*{months}");
+  push("Stipends & staff","CHO / Promoter field support","CHO-month",V.c_choSupport,promoters*V.c_choMonths,false,"org","{CHO}*{choMonths}");
   push("Stipends & staff","Recognition & awards","lump",V.c_recognition,1,false,"org");
 
   // Volunteer kits & support (one-time)
-  push("Volunteer kits","Care Group Volunteer kits (gift, badge, T-shirt)","CGV",V.c_lmKit,LMs,true,"org");
-  push("Volunteer kits","Promoter work-support kits (bike, boots, torch, bag, phone)","promoter",V.c_lmtKit,LMTs,true,"org");
-  push("Volunteer kits","Promoter IDs (T-shirt + badge)","promoter",V.c_lmtID,LMTs,true,"org");
+  push("Volunteer kits","Leader Neighbor kits (gift, badge, T-shirt)","LN",V.c_lmKit,LMs,true,"org","{LN}");
+  push("Volunteer kits","Leader Neighbor Trainer work-support kits (bike, boots, torch, bag, phone)","LNT",V.c_lmtKit,LMTs,true,"org","{LNT}");
+  push("Volunteer kits","Leader Neighbor Trainer IDs (T-shirt + badge)","LNT",V.c_lmtID,LMTs,true,"org","{LNT}");
 
   // Tablets (one-time), split funders
   if(totalTablets){
-    push("Equipment","Tablets (organization share)","tablet",V.c_tablet,orgTablets,true,"org");
-    push("Equipment","Tablets (IGHA share)","tablet",V.c_tablet,ighaTablets,true,"igha");
+    push("Equipment","Tablets (organization share)","tablet",V.c_tablet,orgTablets,true,"org","{tablets}-MIN({ighaTab},{tablets})");
+    push("Equipment","Tablets (IGHA share)","tablet",V.c_tablet,ighaTablets,true,"igha","MIN({ighaTab},{tablets})");
   }
   // Screening equipment (one-time)
   if(V.c_bpScreen){
-    push("Equipment","Blood-pressure monitors (1 per "+V.c_volPerMonitor+" volunteers)","monitor",V.c_bpMonitor,monitors,true,"org");
+    push("Equipment","Blood-pressure monitors (1 per "+V.c_volPerMonitor+" volunteers)","monitor",V.c_bpMonitor,monitors,true,"org","{monitors}");
     push("Equipment","Large-adult cuffs","lump",V.c_largeCuff,1,true,"org");
-    push("Equipment","Monitor batteries","set",V.c_batteries,monitors,true,"org");
+    push("Equipment","Monitor batteries","set",V.c_batteries,monitors,true,"org","{monitors}");
   }
   if(V.c_adrs){
-    push("Equipment","Waist tapes (ADRS)","tape",V.c_waistTape,volunteers,true,"org");
-    push("Equipment","Weighing scales (shared)","scale",V.c_scale,LMTs,true,"org");
-    push("Equipment","Height boards (shared)","board",V.c_heightBoard,LMTs,true,"org");
+    push("Equipment","Waist tapes (ADRS)","tape",V.c_waistTape,volunteers,true,"org","{LN}+{LNT}");
+    push("Equipment","Weighing scales (shared)","scale",V.c_scale,LMTs,true,"org","{LNT}");
+    push("Equipment","Height boards (shared)","board",V.c_heightBoard,LMTs,true,"org","{LNT}");
   }
   if(V.c_adrs && V.c_diabetesLab){
     const gluTests = adults35*(V.c_gluTestShare/100);
-    push("Supplies","Diabetes testing-station kits (meter, spare batteries, lancing device, cooler box, sharps container)","Care Group",V.c_dmKit,LMTs,true,"org");
-    push("Supplies","Blood-glucose test consumables (strip, lancet, swab, gauze, glove)","person tested",V.c_dmPerTest,gluTests,true,"org");
-    push("Supplies","Safety, waste & QC supplies (control solution, sharps/biohazard disposal, sanitizer)","Care Group",V.c_dmWaste,LMTs,true,"org");
+    push("Supplies","Diabetes testing-station kits (meter, spare batteries, lancing device, cooler box, sharps container)","Care Group",V.c_dmKit,LMTs,true,"org","{LNT}");
+    push("Supplies","Blood-glucose test consumables (strip, lancet, swab, gauze, glove)","person tested",V.c_dmPerTest,gluTests,true,"org","{adults}*{gluShare}");
+    push("Supplies","Safety, waste & QC supplies (control solution, sharps/biohazard disposal, sanitizer)","Care Group",V.c_dmWaste,LMTs,true,"org","{LNT}");
   }
-  // Meaningful app licences (cash, per user per year)
-  if(V.c_tabletCounsel && V.c_meaningfulUser>0){
-    push("Community activities","Meaningful app licences","user-year",V.c_meaningfulUser,volunteers*(durMonths/12),false,"org");
+  // Meaningful app licences: the row is kept, with zero users until a number is entered
+  if(V.c_tabletCounsel){
+    push("Community activities","Meaningful app licences","user-year",V.c_meaningfulUser,V.c_meaningfulUsers*(durMonths/12),false,"org","{mUsers}*{months}/12",true);
   }
 
   // Training & census (one-time)
   const trainees=LMTs+promoters+ceil(coordinators);
-  push("Training & census","Central training ("+V.c_trainDays+" days)","person-day",V.c_centralTrain,trainees*V.c_trainDays,true,"org");
-  push("Training & census","CGV in-village training materials","CGV",V.c_lmMaterials,LMs,true,"org");
+  push("Training & census","Central training ("+V.c_trainDays+" days)","person-day",V.c_centralTrain,trainees*V.c_trainDays,true,"org",qStaff+"*"+V.c_trainDays);
+  push("Training & census","Leader Neighbor in-village training materials","LN",V.c_lmMaterials,LMs,true,"org","{LN}");
   push("Training & census","Training supplies","lump",V.c_trainSupplies,1,true,"org");
   push("Training & census","Refresher trainings","lump",V.c_refresherC,1,false,"org");
-  push("Training & census","Census enumeration (10 HH/day)","person-day",V.c_dayLaborC,ceil(HH/10),true,"org");
+  push("Training & census","Census enumeration (10 HH/day)","person-day",V.c_dayLaborC,ceil(HH/10),true,"org",CE("{HH}/10"));
   push("Training & census","Printing & forms","lump",V.c_printing,1,true,"org");
 
   // Community (one-time + recurring)
@@ -700,8 +771,8 @@ function modelCMD(){
     push("Community activities","Community meeting refreshments","lump",V.c_refreshC,1,false,"org");
     push("Community activities","Community durbar / recognition","lump",V.c_durbar,1,false,"org");
   }
-  push("Community activities","Coordinator local transport","coord-month",V.c_coordTransport,coordinators*durMonths,false,"org");
-  push("Community activities","Airtime (Promoters, nurses, coordinator)","phone-month",V.c_airtime,(LMTs+promoters+ceil(coordinators))*durMonths,false,"org");
+  push("Community activities","Coordinator local transport","coord-month",V.c_coordTransport,coordinators*durMonths,false,"org","{coord}*{months}");
+  push("Community activities","Airtime (LNTs, CHOs, coordinator)","phone-month",V.c_airtime,(LMTs+promoters+ceil(coordinators))*durMonths,false,"org",qStaff+"*{months}");
   push("Community activities","Facility HTN strengthening","lump",V.c_saFacility,1,true,"org");
 
   // Screening supplies / measurement
@@ -719,7 +790,7 @@ function modelCMD(){
 
   // in-kind memos
   if(V.c_meaningfulMemo>0) IK.push({label:"IGHA technical oversight",unit:"year",cost:V.c_meaningfulMemo,qty:1,total:V.c_meaningfulMemo,oneTime:false});
-  if(V.c_govInkindC>0) IK.push({label:"Clinical care, confirmatory testing & medicines; supervising-nurse salaries",unit:"year",cost:V.c_govInkindC,qty:1,total:V.c_govInkindC,oneTime:false});
+  if(V.c_govInkindC>0) IK.push({label:"Clinical care, confirmatory testing & medicines; CHO / Promoter salaries",unit:"year",cost:V.c_govInkindC,qty:1,total:V.c_govInkindC,oneTime:false});
 
   // impact estimate: hypertension case-finding & control funnel + CV events averted
   const bpOn=!!V.c_bpScreen;
@@ -733,7 +804,7 @@ function modelCMD(){
   const impact={bpOn, screened, elevated, newlyIdentified, started, controlled, cvEvents, dalys,
     benefitYears:V.c_benefitYears, dalyPerCV:V.c_dalyPerCV, cvOn:V.c_cvBaseRate>0};
 
-  return {shape:S, lines:L, inkind:IK, durMonths, contPct:V.c_contPctC,
+  return {shape:S, lines:L, inkind:IK, drivers:D, durMonths, contPct:V.c_contPctC,
           pop, directBen:adults35, HH, years:durMonths/12, impact, contBase:"cash"};
 }
 
@@ -1152,7 +1223,7 @@ function zipStore(files){
 
 function colLetter(n){ let s=""; n++; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-m-1)/26; } return s; }
 function xesc(s){ return (""+s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-/* cell: {v, t:'s'|'n', s:styleIndex} */
+/* cell: {v, t:'s'|'n', s:styleIndex, f:formula (optional; v is then the calculated value)} */
 function sheetXML(rows, colWidths){
   let cols=""; if(colWidths){ cols='<cols>'+colWidths.map((w,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join("")+'</cols>'; }
   let body="";
@@ -1161,7 +1232,8 @@ function sheetXML(rows, colWidths){
     row.forEach((cell,ci)=>{
       if(cell===null||cell===undefined) return;
       const ref=colLetter(ci)+r; const st=cell.s?' s="'+cell.s+'"':'';
-      if(cell.t==="n"){ cells+='<c r="'+ref+'"'+st+'><v>'+(isFinite(cell.v)?cell.v:0)+'</v></c>'; }
+      if(cell.f){ cells+='<c r="'+ref+'"'+st+'><f>'+xesc(cell.f)+'</f><v>'+(isFinite(cell.v)?cell.v:0)+'</v></c>'; }
+      else if(cell.t==="n"){ cells+='<c r="'+ref+'"'+st+'><v>'+(isFinite(cell.v)?cell.v:0)+'</v></c>'; }
       else { cells+='<c r="'+ref+'"'+st+' t="inlineStr"><is><t xml:space="preserve">'+xesc(cell.v)+'</t></is></c>'; }
     });
     body+='<row r="'+r+'">'+cells+'</row>';
@@ -1171,33 +1243,44 @@ function sheetXML(rows, colWidths){
 }
 const STYLES_XML='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
 '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
-'<numFmts count="3">'+
+'<numFmts count="5">'+
 '<numFmt numFmtId="164" formatCode="&quot;$&quot;#,##0"/>'+
 '<numFmt numFmtId="165" formatCode="0.0"/>'+
 '<numFmt numFmtId="166" formatCode="0%"/>'+
+'<numFmt numFmtId="167" formatCode="&quot;$&quot;#,##0.00"/>'+
+'<numFmt numFmtId="168" formatCode="#,##0"/>'+
 '</numFmts>'+
-'<fonts count="4">'+
+'<fonts count="5">'+
 '<font><sz val="11"/><name val="Calibri"/></font>'+
 '<font><b/><sz val="11"/><name val="Calibri"/></font>'+
 '<font><b/><sz val="14"/><name val="Calibri"/></font>'+
 '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'+
+'<font><sz val="11"/><color rgb="FF0000FF"/><name val="Calibri"/></font>'+
 '</fonts>'+
-'<fills count="3">'+
+'<fills count="4">'+
 '<fill><patternFill patternType="none"/></fill>'+
 '<fill><patternFill patternType="gray125"/></fill>'+
 '<fill><patternFill patternType="solid"><fgColor rgb="FF1C6B4B"/><bgColor indexed="64"/></patternFill></fill>'+
+'<fill><patternFill patternType="solid"><fgColor rgb="FFDCE8E0"/><bgColor indexed="64"/></patternFill></fill>'+
 '</fills>'+
 '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'+
 '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
-'<cellXfs count="8">'+
-'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+                                  /*0 normal*/
-'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+                    /*1 bold*/
-'<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+          /*2 currency*/
+'<cellXfs count="15">'+
+'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+                                       /*0 normal*/
+'<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+                         /*1 bold*/
+'<xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+               /*2 currency*/
 '<xf numFmtId="164" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'+ /*3 bold currency*/
-'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+                    /*4 title*/
-'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'+      /*5 header white on green*/
-'<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+          /*6 number 1dp*/
-'<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'+      /*7 bold on green*/
+'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+                         /*4 title*/
+'<xf numFmtId="0" fontId="3" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'+           /*5 header, white on green*/
+'<xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+               /*6 number, 1 decimal*/
+'<xf numFmtId="0" fontId="1" fillId="3" borderId="0" xfId="0" applyFont="1" applyFill="1"/>'+           /*7 category row, bold on pale green*/
+'<xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+                         /*8 input (blue)*/
+'<xf numFmtId="164" fontId="4" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'+ /*9 input, currency*/
+'<xf numFmtId="167" fontId="4" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'+ /*10 input, currency with cents*/
+'<xf numFmtId="166" fontId="4" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/>'+ /*11 input, percent*/
+'<xf numFmtId="168" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+               /*12 whole number*/
+'<xf numFmtId="166" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+               /*13 percent*/
+'<xf numFmtId="167" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>'+               /*14 currency with cents*/
 '</cellXfs>'+
 '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'+
 '</styleSheet>';
@@ -1218,7 +1301,7 @@ function buildWorkbook(sheets){
     '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
   const wb='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'+
     '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'+
-    '<sheets>'+sheets.map((s,i)=>'<sheet name="'+xesc(s.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join("")+'</sheets></workbook>';
+    '<sheets>'+sheets.map((s,i)=>'<sheet name="'+xesc(s.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join("")+'</sheets><calcPr calcId="0" fullCalcOnLoad="1"/></workbook>';
   let wbRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
   sheets.forEach((s,i)=>wbRels+='<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>');
   wbRels+='<Relationship Id="rId'+(sheets.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
@@ -1234,60 +1317,106 @@ function buildWorkbook(sheets){
 function exportXLSX(){
   const {m,A}=window.__CBIO_LAST;
   const orgLabel=IDENT.org||"Implementing org";
+  const isM=TYPE==="MCHN";
   const T=(v,s)=>({v:v,t:"s",s:s||0});
   const N=(v,s)=>({v:v,t:"n",s:s||0});
+  const F=(f,v,s)=>({f:f,v:v,t:"n",s:s||0});          // formula cell, with the value the tool calculated
   const cur=v=>N(Math.round(v),2), curB=v=>N(Math.round(v),3);
+  const isInt=v=>Math.abs(v-Math.round(v))<1e-9;
+  const CL=colLetter;
 
-  // ---- Budget sheet ----
+  // ---- Budget sheet: main parameters at the top, then the budget by cost category ----
   const rows=[];
-  rows.push([T("CBIO+ Project Budget — Draft",4)]);
-  rows.push([T((TYPE==="MCHN"?"Maternal & Child Health / Nutrition":"Cardiometabolic (Hypertension)")+" project",1)]);
+  rows.push([T("CBIO+ Project Budget (draft)",4)]);
+  rows.push([T((isM?"Maternal & Child Health / Nutrition":"Cardiometabolic (Hypertension)")+" project",1)]);
   rows.push([T("Organization",1),T(IDENT.org||"")]);
   rows.push([T("Area / catchment",1),T(IDENT.area||"")]);
   rows.push([T("Country",1),T(IDENT.country||"")]);
   rows.push([T("Scenario",1),T(nameEl().value.trim())]);
-  rows.push([T("Duration",1),T((A.years.toFixed(A.years%1?1:0))+" years ("+m.durMonths+" months)")]);
-  if(IDENT.cur&&IDENT.fx>0) rows.push([T("Exchange rate",1),T(numf(IDENT.fx)+" "+IDENT.cur+" per US$")]);
+  rows.push([T("Blue figures are inputs you can change. Black figures are calculated from them, so the budget updates when an input changes.")]);
   rows.push([]);
-  // header row for line items (10 columns)
-  rows.push([T("Category",5),T("Line item",5),T("Unit",5),T("Unit cost",5),T("# units",5),T("Years",5),T("Phase",5),T(orgLabel,5),T("IGHA",5),T("Total (US$)",5)]);
-  // group by category
-  const cats={}; m.lines.forEach(l=>{ (cats[l.cat]=cats[l.cat]||[]).push(l); });
-  Object.keys(cats).forEach(cat=>{
-    let first=true;
-    cats[cat].forEach(l=>{
-      rows.push([ T(first?cat:""), T(l.label), T(l.unit), cur(l.cost), N(Math.round(l.qty*100)/100), N(l.lineYears,0),
-        T(l.oneTime?"One-time":"Recurring"),
-        l.funder==="org"?cur(l.total):N(0,2),
-        l.funder==="igha"?cur(l.total):N(0,2),
-        cur(l.total) ]);
-      first=false;
-    });
+  rows.push([T("CALCULATION DRIVERS",5),T("Value",5),T("Note",5)]);
+  const drivers=m.drivers.concat([{k:"fx",label:"Exchange rate ("+(IDENT.cur||"local currency")+" per US$)",v:IDENT.fx||0,fmt:"num",note:"enter a rate to show the total in local currency",f:""}]);
+  const ref={}; drivers.forEach((d,i)=>{ ref[d.k]="$B$"+(rows.length+1+i); });
+  const res=t=>t.replace(/\{(\w+)\}/g,(x,k)=>ref[k]);
+  drivers.forEach(d=>{
+    const c = d.f ? F(res(d.f), d.v, d.fmt==="pct"?13:12)
+                  : N(d.v, d.fmt==="pct"?11:8);
+    rows.push([T(d.label),c,T(d.note)]);
   });
-  // subtotal, contingency, total  (columns: 0..9; org=7, igha=8, total=9)
-  const pad=(lbl,o,i,t)=>[T("",1),T(lbl,1),null,null,null,null,null, o===null?null:o, i===null?null:i, t];
   rows.push([]);
-  rows.push(pad("Subtotal (before contingency)", cur(A.orgPre), cur(A.ighaPre), curB(A.cashPre)));
-  rows.push(pad("Contingency / FOREX ("+A.contPct+"%)", null, null, cur(A.cont)));
-  rows.push(pad("TOTAL CASH BUDGET", curB(A.org), curB(A.igha), curB(A.cash)));
-  if(A.inkind){
-    rows.push([]);
-    rows.push([T("In-kind (memo — not in cash total)",1)]);
-    m.inkind.forEach(l=>rows.push([T(""),T(l.label),T(l.unit),cur(l.cost),N(1,0),N(Math.round(A.years*10)/10,1),T("Memo"),null,null,cur(l.oneTime?l.total:l.total*A.years)]));
-  }
-  const budgetXML=sheetXML(rows,[16,44,15,11,9,7,11,15,12,14]);
 
-  // ---- Assumptions sheet ----
+  const cTot=isM?7:6, cOrg=cTot-2, cIgha=cTot-1;       // zero-based column positions
+  const blank=()=>new Array(cTot+1).fill(null);
+  rows.push([T("BUDGET",1)]);
+  const hdr=[T("Line item",5),T("Unit cost (US$)",5),T("Unit",5),T("# units",5)];
+  if(isM) hdr.push(T("Years",5));
+  hdr.push(T("Cost to "+orgLabel,5),T("Cost to IGHA",5),T("Total cost",5));
+  rows.push(hdr);
+
+  const cats={}; m.lines.forEach(l=>{ (cats[l.cat]=cats[l.cat]||[]).push(l); });
+  const subRows=[];
+  Object.keys(cats).forEach(cat=>{
+    const catRow=blank().map(()=>T("",7)); catRow[0]=T(cat,7); rows.push(catRow);
+    const first=rows.length+1; let so=0, si=0;
+    cats[cat].forEach(l=>{
+      const r=rows.length+1;
+      const row=[T(l.label), N(l.cost, isInt(l.cost)?9:10), T(l.unit),
+                 l.qf ? F(res(l.qf), l.qty, isInt(l.qty)?12:6) : N(l.qty, 8)];
+      let mult="B"+r+"*D"+r;
+      if(isM){ row.push(l.oneTime ? N(1,0) : F(res("{years}"), l.lineYears, 0)); mult+="*E"+r; }
+      const isIgha=l.funder==="igha";
+      row.push(isIgha ? N(0,2) : F(mult,l.total,2));
+      row.push(isIgha ? F(mult,l.total,2) : N(0,2));
+      row.push(F(CL(cOrg)+r+"+"+CL(cIgha)+r, l.total, 2));
+      rows.push(row);
+      if(isIgha) si+=l.total; else so+=l.total;
+    });
+    const last=rows.length, r=rows.length+1;
+    const sr=blank(); sr[0]=T("Subtotal: "+cat,1);
+    [cOrg,cIgha,cTot].forEach((c,i)=>{ sr[c]=F("SUM("+CL(c)+first+":"+CL(c)+last+")",[so,si,so+si][i],3); });
+    rows.push(sr); subRows.push(r); rows.push([]);
+  });
+
+  const rSub=rows.length+1;
+  const sub=blank(); sub[0]=T("SUBTOTAL (before contingency)",1);
+  [cOrg,cIgha,cTot].forEach((c,i)=>{ sub[c]=F(subRows.map(r=>CL(c)+r).join("+"),[A.orgPre,A.ighaPre,A.cashPre][i],3); });
+  rows.push(sub);
+  const rCont=rows.length+1;
+  const cr=blank(); cr[0]=T("Contingency / FOREX reserve (rate is set in the drivers above)");
+  cr[cOrg]=F(ref.contRate+"*"+CL(cOrg)+rSub, A.org-A.orgPre, 2);
+  cr[cIgha]=F(ref.contRate+"*"+CL(cIgha)+rSub, A.igha-A.ighaPre, 2);
+  cr[cTot]=F(CL(cOrg)+rCont+"+"+CL(cIgha)+rCont, A.cont, 2);
+  rows.push(cr);
+  const rTot=rows.length+1;
+  const tr=blank(); tr[0]=T("TOTAL CASH BUDGET",1);
+  [cOrg,cIgha,cTot].forEach((c,i)=>{ tr[c]=F(CL(c)+rSub+"+"+CL(c)+rCont,[A.org,A.igha,A.cash][i],3); });
+  rows.push(tr);
+  const lr=blank(); lr[0]=T("Total in local currency (uses the exchange rate in the drivers above)");
+  lr[cTot]=F(CL(cTot)+rTot+"*"+ref.fx, A.cash*(IDENT.fx||0), 12);
+  rows.push(lr);
+
+  rows.push([]);
+  rows.push([T("IN-KIND (memo, not in the cash totals)",1)]);
+  if(m.inkind.length){
+    m.inkind.forEach(l=>{ const row=blank(); row[0]=T(l.label); row[1]=N(l.cost,9); row[2]=T("per "+l.unit); row[cTot]=cur(l.oneTime?l.total:l.total*A.years); rows.push(row); });
+  } else {
+    rows.push([T("No value entered. List in-kind contributions here (government or partner salaries, clinical care, medicines).")]);
+  }
+  const budgetXML=sheetXML(rows, isM ? [60,15,16,10,7,18,14,14] : [60,15,16,10,18,14,14]);
+
+  // ---- Settings sheet: every setting chosen in the tool, the year split, unit costs and the impact estimate ----
   const arows=[];
-  arows.push([T("Assumptions & program shape",4)]);
+  arows.push([T("All settings chosen in the calculator, and the results",4)]);
+  arows.push([T("These are fixed values copied from the calculator. The Budget sheet is the one that recalculates.")]);
   arows.push([]);
   arows.push([T("Program shape",5),T("Value",5)]);
   Object.keys(m.shape).forEach(k=>arows.push([T(k),T(m.shape[k])]));
   arows.push([]);
-  arows.push([T("Driver / unit cost",5),T("Value",5)]);
+  arows.push([T("Setting / unit cost",5),T("Value",5)]);
   currentFields().forEach(f=>{
     if(f.type==="toggle") arows.push([T(f.label),T(V[f.id]?"On":"Off")]);
-    else if(f.type==="money") arows.push([T(f.label),cur(V[f.id])]);
+    else if(f.type==="money") arows.push([T(f.label),N(V[f.id],isInt(V[f.id])?2:14)]);
     else if(f.type==="pct") arows.push([T(f.label),T(V[f.id]+"%")]);
     else arows.push([T(f.label),N(V[f.id],0)]);
   });
@@ -1299,36 +1428,36 @@ function exportXLSX(){
   arows.push([]);
   arows.push([T("Unit costs",5),T("Value",5)]);
   const annual=A.cash/A.years;
-  arows.push([T("Cost per person per year"),cur(m.pop?annual/m.pop:0)]);
-  arows.push([T("Cost per person, whole project"),cur(m.pop?A.cash/m.pop:0)]);
+  arows.push([T("Cost per person per year"),N(m.pop?annual/m.pop:0,14)]);
+  arows.push([T("Cost per person, whole project"),N(m.pop?A.cash/m.pop:0,14)]);
   arows.push([T("Cost per direct beneficiary per year"),cur(m.directBen?annual/m.directBen:0)]);
-  if(IDENT.cur&&IDENT.fx>0) arows.push([T("Total in "+IDENT.cur),N(Math.round(A.cash*IDENT.fx),0)]);
+  if(IDENT.cur&&IDENT.fx>0) arows.push([T("Total in "+IDENT.cur),N(Math.round(A.cash*IDENT.fx),12)]);
   if(TYPE==="MCHN" && m.impact && (m.impact.u5Entered||m.impact.mmrEntered)){
     const im=m.impact;
     arows.push([]);
     arows.push([T("Estimated impact (planning-level)",5),T("Value",5)]);
-    if(im.u5Entered) arows.push([T("Under-5 deaths averted, project"),N(Math.round(im.u5Tot*10)/10,1)]);
-    if(im.mmrEntered) arows.push([T("Maternal deaths averted, project"),im.cbcOn?N(Math.round(im.matTot*10)/10,1):T("needs Casas Maternas")]);
-    arows.push([T("Total lives saved"),N(Math.round(im.livesTot*10)/10,1)]);
-    arows.push([T("DALYs averted ("+im.dalyPer+" per death)"),N(Math.round(im.dalys),0)]);
+    if(im.u5Entered) arows.push([T("Under-5 deaths averted, project"),N(Math.round(im.u5Tot*10)/10,6)]);
+    if(im.mmrEntered) arows.push([T("Maternal deaths averted, project"),im.cbcOn?N(Math.round(im.matTot*10)/10,6):T("needs Casas Maternas")]);
+    arows.push([T("Total lives saved"),N(Math.round(im.livesTot*10)/10,6)]);
+    arows.push([T("DALYs averted ("+im.dalyPer+" per death)"),N(Math.round(im.dalys),12)]);
     if(im.livesTot>0){ arows.push([T("Cost per life saved"),cur(A.cash/im.livesTot)]); arows.push([T("Cost per DALY averted"),cur(A.cash/im.dalys)]); }
   } else if(TYPE==="CMD" && m.impact && m.impact.bpOn){
     const im=m.impact;
     arows.push([]);
     arows.push([T("Estimated impact (planning-level)",5),T("Value",5)]);
-    arows.push([T("Adults 35+ screened"),N(Math.round(im.screened),0)]);
-    arows.push([T("Hypertensives found"),N(Math.round(im.elevated),0)]);
-    arows.push([T("Newly diagnosed (were unaware)"),N(Math.round(im.newlyIdentified),0)]);
-    arows.push([T("Started & retained on treatment"),N(Math.round(im.started),0)]);
-    arows.push([T("Reaching BP control (<140/90)"),N(Math.round(im.controlled),0)]);
-    if(im.cvOn){ arows.push([T("Cardiovascular events averted (illustrative)"),N(Math.round(im.cvEvents*10)/10,1)]); arows.push([T("DALYs averted ("+im.dalyPerCV+" per event)"),N(Math.round(im.dalys),0)]); }
+    arows.push([T("Adults 35+ screened"),N(Math.round(im.screened),12)]);
+    arows.push([T("Hypertensives found"),N(Math.round(im.elevated),12)]);
+    arows.push([T("Newly diagnosed (were unaware)"),N(Math.round(im.newlyIdentified),12)]);
+    arows.push([T("Started & retained on treatment"),N(Math.round(im.started),12)]);
+    arows.push([T("Reaching BP control (<140/90)"),N(Math.round(im.controlled),12)]);
+    if(im.cvOn){ arows.push([T("Cardiovascular events averted (illustrative)"),N(Math.round(im.cvEvents*10)/10,6)]); arows.push([T("DALYs averted ("+im.dalyPerCV+" per event)"),N(Math.round(im.dalys),12)]); }
     if(im.controlled>0) arows.push([T("Cost per person brought to control"),cur(A.cash/im.controlled)]);
   }
   arows.push([]);
   arows.push([T("Planning-level draft from the CBIO+ Project Budget Calculator. Verify local wages, ratios, and prices before submitting.")]);
-  const assumeXML=sheetXML(arows,[40,16,12,12,12,12]);
+  const assumeXML=sheetXML(arows,[52,16,12,12,12,12]);
 
-  const blob=buildWorkbook([{name:"Budget",xml:budgetXML},{name:"Assumptions",xml:assumeXML}]);
+  const blob=buildWorkbook([{name:"Budget",xml:budgetXML},{name:"Settings",xml:assumeXML}]);
   const slug=((nameEl().value||IDENT.area||"cbio")+"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,50);
   downloadBlob(blob,"cbio-budget-"+(slug||"draft")+".xlsx");
   const btn=document.getElementById("xlsxBtn"); btn.textContent="Downloaded"; setTimeout(()=>btn.textContent="Download Excel budget",2000);
